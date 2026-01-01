@@ -1,0 +1,104 @@
+{
+  "appTitle": "名片智造",
+  "settingsAndToolbox": "系统设置与工具箱",
+  "basicSettings": "基本设置",
+  "languageSettings": "语言设置",
+  "followSystem": "跟随系统",
+  "simplifiedChinese": "简体中文",
+  "english": "English",
+  "smartToolbox": "智能工具箱",
+  "smartTextExtraction": "智能文字提取",
+  "extractStructuredInfo": "从图片中提取结构化联系人信息",
+  "selectImage": "选择图片",
+  "takePhoto": "拍照提取",
+  "extractionPreview": "提取结果预览",
+  "about": "关于",
+  "softwareVersion": "软件版本",
+  "ocrEngineStatus": "OCR 引擎状态",
+  "ready": "已就绪",
+  "name": "姓名",
+  "company": "公司",
+  "phone": "电话",
+  "email": "邮箱",
+  "address": "地址",
+  "toolFailed": "工具运行失败: {error}",
+  "@toolFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cardManagement": "名片管理",
+  "myCards": "我的名片",
+  "systemSettings": "系统设置",
+  "searchPlaceholder": "搜索姓名、公司或职位...",
+  "noMatchFound": "未找到匹配的名片",
+  "tryAnotherKeyword": "尝试换个关键词搜索吧",
+  "startDigitalCardHolder": "开启您的数字名片夹",
+  "scanButtonDescription": "点击下方按钮扫描名片，我们将为您自动识别并保存联系人信息",
+  "importCard": "导入名片",
+  "cameraImport": "拍照导入",
+  "galleryImport": "相册导入",
+  "manualInput": "手动输入",
+  "home": "首页",
+  "cards": "名片",
+  "settings": "设置",
+  "deleteConfirmTitle": "确认删除",
+  "deleteConfirmContent": "确定要删除这张名片吗？此操作无法撤销。",
+  "cancel": "取消",
+  "delete": "删除",
+  "cardDeleted": "名片已删除",
+  "share": "分享",
+  "jobTitle": "职位",
+  "website": "网址",
+  "fromApp": "来自: 名片智造",
+  "confirm": "确认",
+  "errorProcessingImage": "处理图片失败，请重试。",
+  "editCardInfo": "名片信息编辑",
+  "originalImage": "名片原图",
+  "clickToChangeImage": "点击更换名片图片",
+  "detailedInfo": "详细信息",
+  "pleaseEnterName": "请输入姓名",
+  "pleaseEnterTitle": "请输入职位",
+  "pleaseEnterCompany": "请输入公司名称",
+  "pleaseEnterPhone": "请输入电话号码",
+  "pleaseEnterEmail": "请输入电子邮箱",
+  "pleaseEnterWebsite": "请输入网址",
+  "pleaseEnterAddress": "请输入详细地址",
+  "notes": "备注",
+  "pleaseEnterNotes": "请输入备注信息",
+  "saveAndReturn": "保存并返回",
+  "nameCannotBeEmpty": "姓名不能为空",
+  "confirmClear": "确认清空",
+  "clearConfirmContent": "这将清除当前输入的所有信息和已保存的名片数据，确定吗？",
+  "clearData": "清空数据",
+  "dataCleared": "名片数据已清空",
+  "pleaseEnterNameBeforeSaving": "请至少输入姓名再保存",
+  "cardSavedLocally": "名片已成功保存到本地",
+  "saveFailed": "保存失败: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "layoutReset": "布局已重置为默认位置",
+  "reset": "重置",
+  "template": "模板",
+  "export": "导出",
+  "shareMyCard": "分享我的名片",
+  "exportFailed": "导出失败: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanToSaveContact": "扫码保存联系人",
+  "close": "关闭",
+  "basicInfo": "基本信息",
+  "saveCard": "保存名片"
+}

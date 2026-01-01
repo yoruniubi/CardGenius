@@ -1,0 +1,104 @@
+{
+  "appTitle": "Business Card Maker",
+  "settingsAndToolbox": "Settings & Toolbox",
+  "basicSettings": "Basic Settings",
+  "languageSettings": "Language Settings",
+  "followSystem": "Follow System",
+  "simplifiedChinese": "Simplified Chinese",
+  "english": "English",
+  "smartToolbox": "Smart Toolbox",
+  "smartTextExtraction": "Smart Text Extraction",
+  "extractStructuredInfo": "Extract structured contact info from images",
+  "selectImage": "Select Image",
+  "takePhoto": "Take Photo",
+  "extractionPreview": "Extraction Preview",
+  "about": "About",
+  "softwareVersion": "Software Version",
+  "ocrEngineStatus": "OCR Engine Status",
+  "ready": "Ready",
+  "name": "Name",
+  "company": "Company",
+  "phone": "Phone",
+  "email": "Email",
+  "address": "Address",
+  "toolFailed": "Tool failed: {error}",
+  "@toolFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cardManagement": "Card Management",
+  "myCards": "My Cards",
+  "systemSettings": "System Settings",
+  "searchPlaceholder": "Search name, company or title...",
+  "noMatchFound": "No matching cards found",
+  "tryAnotherKeyword": "Try searching with another keyword",
+  "startDigitalCardHolder": "Start your digital card holder",
+  "scanButtonDescription": "Click the button below to scan a business card, and we will automatically recognize and save the contact information for you.",
+  "importCard": "Import Card",
+  "cameraImport": "Camera Import",
+  "galleryImport": "Gallery Import",
+  "manualInput": "Manual Input",
+  "home": "Home",
+  "cards": "Cards",
+  "settings": "Settings",
+  "deleteConfirmTitle": "Confirm Delete",
+  "deleteConfirmContent": "Are you sure you want to delete this card? This action cannot be undone.",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "cardDeleted": "Card deleted",
+  "share": "Share",
+  "jobTitle": "Title",
+  "website": "Website",
+  "fromApp": "From: Business Card Maker",
+  "confirm": "Confirm",
+  "errorProcessingImage": "Failed to process image, please try again.",
+  "editCardInfo": "Edit Card Info",
+  "originalImage": "Original Image",
+  "clickToChangeImage": "Click to change image",
+  "detailedInfo": "Detailed Info",
+  "pleaseEnterName": "Please enter name",
+  "pleaseEnterTitle": "Please enter title",
+  "pleaseEnterCompany": "Please enter company name",
+  "pleaseEnterPhone": "Please enter phone number",
+  "pleaseEnterEmail": "Please enter email",
+  "pleaseEnterWebsite": "Please enter website",
+  "pleaseEnterAddress": "Please enter address",
+  "notes": "Notes",
+  "pleaseEnterNotes": "Please enter notes",
+  "saveAndReturn": "Save and Return",
+  "nameCannotBeEmpty": "Name cannot be empty",
+  "confirmClear": "Confirm Clear",
+  "clearConfirmContent": "This will clear all current input and saved card data. Are you sure?",
+  "clearData": "Clear Data",
+  "dataCleared": "Card data cleared",
+  "pleaseEnterNameBeforeSaving": "Please enter at least a name before saving",
+  "cardSavedLocally": "Card successfully saved locally",
+  "saveFailed": "Save failed: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "layoutReset": "Layout reset to default positions",
+  "reset": "Reset",
+  "template": "Template",
+  "export": "Export",
+  "shareMyCard": "Share my business card",
+  "exportFailed": "Export failed: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanToSaveContact": "Scan to save contact",
+  "close": "Close",
+  "basicInfo": "Basic Info",
+  "saveCard": "Save Card"
+}

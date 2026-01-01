@@ -1,0 +1,6 @@
+rootProject.name = 'ocr_plugin'
+
+def nativeProjectRoot = new File('../../paddleocr4android')
+include ':PaddleOCR4Android'
+project(':PaddleOCR4Android').projectDir = nativeProjectRoot
+include ':PaddleOCR4Android:PaddleOCR4Android'
