@@ -262,4 +262,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveCard => 'Save Card';
+
+  @override
+  String templateCount(int count) {
+    return '$count design elements';
+  }
+
+  @override
+  String templateName(String id) {
+    return 'Template $id';
+  }
+
+  @override
+  String get customBackground => 'Custom Background';
+
+  @override
+  String get selectTemplate => 'Select Template';
+
+  @override
+  String get uploadBackground => 'Upload Background';
+
+  @override
+  String get useLocalImage => 'Use Local Image';
+
+  @override
+  String get ocrWebNotSupported => 'OCR Plugin does not support Web platform.';
+
+  @override
+  String get cardPreview => 'Card Preview';
+
+  @override
+  String get backToEdit => 'Back to Edit';
+
+  @override
+  String get savedTemplate => 'Saved Template';
+
+  @override
+  String get unknownName => 'Unknown Name';
+
+  @override
+  String get clickPlusToImport => 'Click the + button to import a card';
 }

@@ -100,5 +100,31 @@
   "scanToSaveContact": "扫码保存联系人",
   "close": "关闭",
   "basicInfo": "基本信息",
-  "saveCard": "保存名片"
+  "saveCard": "保存名片",
+  "templateCount": "{count} 个设计元素",
+  "@templateCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "templateName": "模板 {id}",
+  "@templateName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "customBackground": "自定义背景",
+  "selectTemplate": "选择名片模板",
+  "uploadBackground": "上传背景",
+  "useLocalImage": "使用本地图片",
+  "ocrWebNotSupported": "OCR Plugin 不支持Web平台。",
+  "cardPreview": "名片预览",
+  "backToEdit": "返回编辑",
+  "savedTemplate": "已保存模板",
+  "unknownName": "未知姓名",
+  "clickPlusToImport": "点击右下角加号导入名片"
 }

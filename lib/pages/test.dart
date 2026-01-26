@@ -96,7 +96,7 @@ class _OcrTestPageState extends State<OcrTestPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 设置板块 ---
+            // --- Settings Section ---
             _buildSectionHeader(theme, l10n.basicSettings, LucideIcons.settings),
             const SizedBox(height: 12),
             ShadCard(
@@ -137,11 +137,11 @@ class _OcrTestPageState extends State<OcrTestPage> {
 
             const SizedBox(height: 32),
 
-            // --- 工具箱板块 ---
+            // --- Toolbox Section ---
             _buildSectionHeader(theme, l10n.smartToolbox, LucideIcons.box),
             const SizedBox(height: 12),
             
-            // OCR 工具卡片
+            // OCR Tool Card
             ShadCard(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -208,7 +208,7 @@ class _OcrTestPageState extends State<OcrTestPage> {
 
             const SizedBox(height: 32),
 
-            // --- 关于板块 ---
+            // --- About Section ---
             _buildSectionHeader(theme, l10n.about, LucideIcons.info),
             const SizedBox(height: 12),
             ShadCard(

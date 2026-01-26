@@ -60,8 +60,8 @@ class BusinessCard {
 
   // Helper to create a BusinessCard from OCR recognized text using ML Kit Entity Extraction
   static Future<BusinessCard> fromOcrTextAsync(String ocrText, {String? imagePath}) async {
-    debugPrint('--- ML Kit Entity Extraction 开始 ---');
-    debugPrint('原始文本: $ocrText');
+    debugPrint('--- ML Kit Entity Extraction Start ---');
+    debugPrint('Original text: $ocrText');
 
     String? phone;
     String? email;
@@ -78,19 +78,19 @@ class BusinessCard {
           switch (entity.type) {
             case EntityType.email:
               email ??= annotation.text;
-              debugPrint('ML Kit 匹配到邮箱: $email');
+              debugPrint('ML Kit matched email: $email');
               break;
             case EntityType.phone:
               phone ??= annotation.text;
-              debugPrint('ML Kit 匹配到电话: $phone');
+              debugPrint('ML Kit matched phone: $phone');
               break;
             case EntityType.address:
               address ??= annotation.text;
-              debugPrint('ML Kit 匹配到地址: $address');
+              debugPrint('ML Kit matched address: $address');
               break;
             case EntityType.url:
               website ??= annotation.text;
-              debugPrint('ML Kit 匹配到网址: $website');
+              debugPrint('ML Kit matched website: $website');
               break;
             default:
               break;
@@ -98,12 +98,12 @@ class BusinessCard {
         }
       }
     } catch (e) {
-      debugPrint('ML Kit Entity Extraction 出错: $e');
+      debugPrint('ML Kit Entity Extraction error: $e');
     } finally {
       entityExtractor.close();
     }
 
-    // 使用改进后的同步逻辑作为补充和兜底
+    // Use improved sync logic as fallback
     final fallbackCard = BusinessCard.fromOcrText(ocrText, imagePath: imagePath);
 
     return BusinessCard(
@@ -120,7 +120,7 @@ class BusinessCard {
 
   // Helper to create a BusinessCard from OCR recognized text
   factory BusinessCard.fromOcrText(String ocrText, {String? imagePath}) {
-    debugPrint('--- OCR 解析开始 ---');
+    debugPrint('--- OCR Parsing Start ---');
     String name = '';
     String? title;
     String? company;
@@ -129,17 +129,17 @@ class BusinessCard {
     String? address;
     String? website;
 
-    // 1. 预处理：仅进行必要的标准化，不破坏原始文本结构
+    // 1. Preprocessing: standardization without breaking structure
     String processedText = ocrText
         .replaceAll('：', ':')
         .replaceAll('　', ' ')
         .trim();
 
-    // 按行拆分，保留空行以维持结构感
+    // Split by lines, keep empty lines for structure
      List<String> lines = processedText.split(RegExp(r'\n+')).map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-    debugPrint('预处理后的行: $lines');
+    debugPrint('Processed lines: $lines');
 
-    // 2. 关键词定义
+    // 2. Keyword definitions
     final addressKeywords = ['add', 'address', '地址', '省', '市', '区', '路', '街', '号', '大厦', '楼', '工业园', '开发区', '广场', '胡同', '弄'];
     final companyKeywords = ['公司', '集团', '中心', '工作室', '有限', '股份', '厂', '部', '机构', '协会', '学校', '医院', 'co.', 'ltd.', 'inc.', 'corp.', '店', '行', '社', '馆', '院', '厅', 'university', 'association', 'office', 'studio'];
     final websiteKeywords = ['web', 'website', '网址', 'http', 'www', 'w:', '官网', 'site'];
@@ -147,32 +147,32 @@ class BusinessCard {
 
     List<String> remainingLines = [];
 
-    // 3. 第一遍扫描：提取结构化信息 (Email, Phone, Website, Address)
+    // 3. First pass: extract structured info (Email, Phone, Website, Address)
     for (var line in lines) {
       bool matched = false;
 
-      // 3.1 提取邮箱
+      // 3.1 Extract email
       final emailMatch = RegExp(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}').firstMatch(line);
       if (emailMatch != null) {
         email ??= emailMatch.group(0);
         matched = true;
       }
 
-      // 3.2 提取电话
+      // 3.2 Extract phone
       final phoneMatch = RegExp(r'(\+?86)?(1[3-9]\d{9})|(\d{3,4}-\d{7,8})').firstMatch(line.replaceAll(' ', ''));
       if (phoneMatch != null) {
         phone ??= phoneMatch.group(0);
         matched = true;
       }
 
-      // 3.3 提取网址
+      // 3.3 Extract website
       final webMatch = RegExp(r'(https?://)?(www\.)?[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\.?').firstMatch(line);
       if (webMatch != null && (websiteKeywords.any((k) => line.toLowerCase().contains(k)) || line.contains('www.') || line.contains('.com'))) {
         website ??= webMatch.group(0);
         matched = true;
       }
 
-      // 3.4 提取地址
+      // 3.4 Extract address
       if (addressKeywords.any((k) => line.contains(k))) {
         address ??= line.replaceFirst(RegExp(r'^地址[:\s]*'), '').trim();
         matched = true;
@@ -183,9 +183,9 @@ class BusinessCard {
       }
     }
 
-    // 4. 第二遍扫描：从剩余行中提取 公司、职位、姓名
+    // 4. Second pass: extract company, title, name
     
-    // 4.1 提取公司
+    // 4.1 Extract company
     for (int i = 0; i < remainingLines.length; i++) {
       if (companyKeywords.any((k) => remainingLines[i].toLowerCase().contains(k))) {
         company ??= remainingLines[i];
@@ -194,7 +194,7 @@ class BusinessCard {
       }
     }
 
-    // 4.2 提取职位
+    // 4.2 Extract title
     int titleIdx = -1;
     for (int i = 0; i < remainingLines.length; i++) {
       if (titleKeywords.any((k) => remainingLines[i].toLowerCase().contains(k))) {
@@ -205,10 +205,10 @@ class BusinessCard {
       }
     }
 
-    // 4.3 提取姓名
-    // 姓名通常在职位的前一行或后一行，或者是剩余行中最像姓名的（2-4个汉字）
+    // 4.3 Extract name
+    // Name is usually near title or 2-4 Chinese characters
     if (titleIdx != -1 && remainingLines.isNotEmpty) {
-      // 检查职位原位置附近
+      // Check near title position
       int searchStart = (titleIdx - 1).clamp(0, remainingLines.length - 1);
       int searchEnd = titleIdx.clamp(0, remainingLines.length - 1);
       
@@ -221,7 +221,7 @@ class BusinessCard {
       }
     }
 
-    // 如果还没找到姓名，找剩余行中最短的纯中文行
+    // Fallback: find shortest pure Chinese line
     if (name.isEmpty && remainingLines.isNotEmpty) {
       remainingLines.sort((a, b) => a.length.compareTo(b.length));
       for (int i = 0; i < remainingLines.length; i++) {
@@ -233,9 +233,9 @@ class BusinessCard {
       }
     }
 
-    // 5. 兜底
+    // 5. Fallback
     if (name.isEmpty) {
-      name = remainingLines.isNotEmpty ? remainingLines[0] : '未知姓名';
+      name = remainingLines.isNotEmpty ? remainingLines[0] : 'Unknown Name';
     }
 
     final result = BusinessCard(
@@ -248,8 +248,8 @@ class BusinessCard {
       website: website,
       imagePath: imagePath,
     );
-    debugPrint('--- OCR 解析结果: $result ---');
-    debugPrint('--- OCR 解析结束 ---');
+    debugPrint('--- OCR Parsing Result: $result ---');
+    debugPrint('--- OCR Parsing End ---');
     return result;
   }
   @override

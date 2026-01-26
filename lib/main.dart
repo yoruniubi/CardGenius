@@ -10,11 +10,10 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:business_card_ocr/models/business_card.dart';
 import 'package:business_card_ocr/pages/editor_page.dart';
-import 'package:business_card_ocr/pages/card_management.dart'; // 导入名片管理页面
-import 'package:business_card_ocr/pages/test.dart'; // 导入测试页面
+import 'package:business_card_ocr/pages/card_management.dart';
+import 'package:business_card_ocr/pages/test.dart';
 import 'package:business_card_ocr/providers/locale_provider.dart';
-import 'package:shadcn_ui/shadcn_ui.dart'; // 导入 shadcn_ui 库
-// import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -24,7 +23,7 @@ void main() {
   runApp(const MyApp());
 }
 
-// MyApp Widget 只负责创建 MaterialApp
+// MyApp Widget creates MaterialApp
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -88,7 +87,7 @@ class _MyAppState extends State<MyApp> {
           selection: Color(0xFFCBD5E1),
         ),
       ),
-      // 定义路由
+      // Define routes
       routes: {
         '/': (context) => const HomePage(),
         '/cardManagement': (context) => const CardPage(),
@@ -99,7 +98,7 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-// 新建的 HomePage Widget，它包含了页面的实际内容
+// HomePage Widget contains the actual content of the page
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -244,20 +243,20 @@ class _HomePageState extends State<HomePage> {
 
       String finalRecognizedText = '';
       if (!kIsWeb) {
-        debugPrint('在移动端尝试 Paddle OCR...');
+        debugPrint('Attempting Paddle OCR on mobile...');
         try {
           final ocrResult = await _ocrPlugin.recognizeText(image.path);
           if (ocrResult != null && ocrResult['simpleText'] != null) {
             finalRecognizedText = ocrResult['simpleText'] as String;
-            debugPrint("OCR Plugin 识别结果: $finalRecognizedText");
+            debugPrint("OCR Plugin recognition result: $finalRecognizedText");
           } else {
-            debugPrint("OCR Plugin 未识别到文本或返回格式不正确。");
+            debugPrint("OCR Plugin failed to recognize text or returned incorrect format.");
           }
         } catch (e) {
-          debugPrint('OCR Plugin 抛出异常: $e');
+          debugPrint('OCR Plugin exception: $e');
         }
       } else {
-        finalRecognizedText = 'OCR Plugin 不支持Web平台。';
+        finalRecognizedText = 'OCR Plugin does not support Web platform.';
         debugPrint(finalRecognizedText);
       }
 
@@ -271,7 +270,7 @@ class _HomePageState extends State<HomePage> {
       scaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(content: Text(l10n.errorProcessingImage)),
       );
-      debugPrint('处理图片时发生顶层错误: $e');
+      debugPrint('Top-level error during image processing: $e');
       await _navigateToEditorPage();
     }
   }
@@ -297,20 +296,20 @@ class _HomePageState extends State<HomePage> {
       String finalRecognizedText = '';
 
       if (!kIsWeb) {
-        debugPrint('处理扫描的图片，尝试 Paddle OCR...');
+        debugPrint('Processing scanned image, attempting Paddle OCR...');
         try {
           final ocrResult = await _ocrPlugin.recognizeText(imagePath);
           if (ocrResult != null && ocrResult['simpleText'] != null) {
             finalRecognizedText = ocrResult['simpleText'] as String;
-            debugPrint("OCR Plugin 识别结果: $finalRecognizedText");
+            debugPrint("OCR Plugin recognition result: $finalRecognizedText");
           } else {
-            debugPrint("OCR Plugin 未识别到文本或返回格式不正确。");
+            debugPrint("OCR Plugin failed to recognize text or returned incorrect format.");
           }
         } catch (e) {
-          debugPrint('OCR Plugin 抛出异常: $e');
+          debugPrint('OCR Plugin exception: $e');
         }
       } else {
-        finalRecognizedText = 'OCR Plugin 不支持Web平台。';
+        finalRecognizedText = 'OCR Plugin does not support Web platform.';
         debugPrint(finalRecognizedText);
       }
 
@@ -324,7 +323,7 @@ class _HomePageState extends State<HomePage> {
       scaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(content: Text(l10n.errorProcessingImage)),
       );
-      debugPrint('处理扫描图片时发生错误: $e');
+      debugPrint('Error during scanned image processing: $e');
       await _navigateToEditorPage(imagePath: imagePath);
     }
   }

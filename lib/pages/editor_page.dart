@@ -43,14 +43,14 @@ class _EditorPageState extends State<EditorPage> {
   }
 
   Future<void> _initializeCardData() async {
-    debugPrint('EditorPage: 初始化数据');
+    debugPrint('EditorPage: Initializing data');
     if (widget.businessCard != null) {
       _editingCard = widget.businessCard!;
       if (_editingCard.imagePath != null) {
         _pickedImage = XFile(_editingCard.imagePath!);
       }
     } else if (widget.recognizedText != null && widget.recognizedText!.isNotEmpty) {
-      // 使用异步的 ML Kit 实体提取逻辑
+      // Use asynchronous ML Kit entity extraction logic
       _editingCard = await BusinessCard.fromOcrTextAsync(
         widget.recognizedText!,
         imagePath: widget.imagePath,
@@ -100,9 +100,9 @@ class _EditorPageState extends State<EditorPage> {
 
   void _saveBusinessCard() {
     final l10n = AppLocalizations.of(context)!;
-    debugPrint('EditorPage: 尝试保存名片');
+    debugPrint('EditorPage: Attempting to save card');
     if (_nameController.text.trim().isEmpty) {
-      debugPrint('保存失败：姓名为空');
+      debugPrint('Save failed: Name is empty');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.nameCannotBeEmpty),
@@ -121,7 +121,7 @@ class _EditorPageState extends State<EditorPage> {
     _editingCard.website = _websiteController.text.isEmpty ? null : _websiteController.text;
     _editingCard.notes = _notesController.text.isEmpty ? null : _notesController.text;
     _editingCard.imagePath = _pickedImage?.path;
-    debugPrint('保存成功: $_editingCard');
+    debugPrint('Save successful: $_editingCard');
     Navigator.pop(context, _editingCard);
   }
 

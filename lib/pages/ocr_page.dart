@@ -5,8 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ocr_plugin/ocr_plugin.dart'; // Import the OCR plugin
 import 'package:cunning_document_scanner/cunning_document_scanner.dart'; // Import the Cunning Document Scanner
 import 'package:business_card_ocr/models/business_card.dart'; // Import the BusinessCard model
-import 'package:business_card_ocr/pages/editor_page.dart'; // Import the EditorPage
+import 'package:business_card_ocr/pages/editor_page.dart';
 import 'package:business_card_ocr/main.dart';
+import 'package:business_card_ocr/l10n/app_localizations.dart';
 
 class OcrPage extends StatefulWidget {
   const OcrPage({super.key});
@@ -16,21 +17,21 @@ class OcrPage extends StatefulWidget {
 }
 
 class _OcrPageState extends State<OcrPage> {
-  final OcrPlugin _ocrPlugin = OcrPlugin(); // OCR插件实例
+  final OcrPlugin _ocrPlugin = OcrPlugin();
   final ImagePicker _picker = ImagePicker();
-  final List<BusinessCard> _businessCards = []; // List to store business cards
+  final List<BusinessCard> _businessCards = [];
   bool isGalleryImportAllowed = true;
   List<String> scannedImagesPath = [];
 
   @override
   void initState() {
     super.initState();
-    _initializeOcrPlugin(); // 初始化OCR插件
+    _initializeOcrPlugin();
   }
 
   Future<void> _initializeOcrPlugin() async {
     try {
-      // 初始化OCR插件，可以根据需要传递配置参数
+      // Initialize OCR plugin with configuration parameters
       final bool? success = await _ocrPlugin.init(
         modelPath: "models/ch_PP-OCRv4",
         labelPath: "labels/ppocr_keys_v1.txt",
@@ -49,7 +50,7 @@ class _OcrPageState extends State<OcrPage> {
 
   @override
   void dispose() {
-    _ocrPlugin.release(); // 释放OCR插件资源
+    _ocrPlugin.release();
     super.dispose();
   }
 
@@ -61,25 +62,26 @@ class _OcrPageState extends State<OcrPage> {
       String finalRecognizedText = '';
 
       if (!kIsWeb) {
-        debugPrint('在移动端尝试 Paddle OCR...');
+        debugPrint('Attempting Paddle OCR on mobile...');
         try {
           final ocrResult = await _ocrPlugin.recognizeText(image.path);
           if (ocrResult != null && ocrResult['simpleText'] != null) {
             finalRecognizedText = ocrResult['simpleText'] as String;
-            debugPrint("OCR Plugin 识别结果: $finalRecognizedText");
+            debugPrint("OCR Plugin recognition result: $finalRecognizedText");
           } else {
-            debugPrint("OCR Plugin 未识别到文本或返回格式不正确。");
+            debugPrint("OCR Plugin failed to recognize text or returned incorrect format.");
           }
         } catch (e) {
-          debugPrint('OCR Plugin 抛出异常: $e');
+          debugPrint('OCR Plugin exception: $e');
         }
       } else {
-        finalRecognizedText = 'OCR Plugin 不支持Web平台。';
+        finalRecognizedText = 'OCR Plugin does not support Web platform.';
         debugPrint(finalRecognizedText);
       }
 
+      final l10n = AppLocalizations.of(context)!;
       // After OCR, navigate to EditorPage with the recognized text and image path
-      if (finalRecognizedText.isNotEmpty && finalRecognizedText != 'OCR Plugin 不支持Web平台。') {
+      if (finalRecognizedText.isNotEmpty && finalRecognizedText != l10n.ocrWebNotSupported) {
         await _navigateToEditorPage(recognizedText: finalRecognizedText, imagePath: image.path);
       } else {
         // If no text recognized or web platform, still allow manual input, potentially with image
@@ -89,10 +91,11 @@ class _OcrPageState extends State<OcrPage> {
       // No need to update _recognizedText or _pickedImage in OcrPage as they are not displayed here anymore.
       // The recognized text is passed directly to EditorPage.
     } catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       scaffoldMessengerKey.currentState?.showSnackBar(
-        const SnackBar(content: Text('处理图片失败，请重试。')),
+        SnackBar(content: Text(l10n.errorProcessingImage)),
       );
-      debugPrint('处理图片时发生顶层错误: $e');
+      debugPrint('Error during image processing: $e');
       // If an error occurs, still navigate to editor page for manual input
       await _navigateToEditorPage();
     }
@@ -121,35 +124,37 @@ class _OcrPageState extends State<OcrPage> {
       String finalRecognizedText = '';
 
       if (!kIsWeb) {
-        debugPrint('处理扫描的图片，尝试 Paddle OCR...');
+        debugPrint('Processing scanned image, attempting Paddle OCR...');
         try {
           final ocrResult = await _ocrPlugin.recognizeText(imagePath);
           if (ocrResult != null && ocrResult['simpleText'] != null) {
             finalRecognizedText = ocrResult['simpleText'] as String;
-            debugPrint("OCR Plugin 识别结果: $finalRecognizedText");
+            debugPrint("OCR Plugin recognition result: $finalRecognizedText");
           } else {
-            debugPrint("OCR Plugin 未识别到文本或返回格式不正确。");
+            debugPrint("OCR Plugin failed to recognize text or returned incorrect format.");
           }
         } catch (e) {
-          debugPrint('OCR Plugin 抛出异常: $e');
+          debugPrint('OCR Plugin exception: $e');
         }
       } else {
-        finalRecognizedText = 'OCR Plugin 不支持Web平台。';
+        finalRecognizedText = 'OCR Plugin does not support Web platform.';
         debugPrint(finalRecognizedText);
       }
 
+      final l10n = AppLocalizations.of(context)!;
       // After OCR, navigate to EditorPage with the recognized text and image path
-      if (finalRecognizedText.isNotEmpty && finalRecognizedText != 'OCR Plugin 不支持Web平台。') {
+      if (finalRecognizedText.isNotEmpty && finalRecognizedText != l10n.ocrWebNotSupported) {
         await _navigateToEditorPage(recognizedText: finalRecognizedText, imagePath: imagePath);
       } else {
         // If no text recognized or web platform, still allow manual input, potentially with image
         await _navigateToEditorPage(imagePath: imagePath);
       }
     } catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       scaffoldMessengerKey.currentState?.showSnackBar(
-        const SnackBar(content: Text('处理扫描图片失败，请重试。')),
+        SnackBar(content: Text(l10n.errorProcessingImage)),
       );
-      debugPrint('处理扫描图片时发生错误: $e');
+      debugPrint('Error during scanned image processing: $e');
       // If an error occurs, still navigate to editor page for manual input
       await _navigateToEditorPage(imagePath: imagePath);
     }
@@ -177,6 +182,7 @@ class _OcrPageState extends State<OcrPage> {
   }
 
   void _showImportOptions() {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -186,23 +192,23 @@ class _OcrPageState extends State<OcrPage> {
             children: <Widget>[
               ListTile(
                 leading: const Icon(Icons.camera_alt),
-                title: const Text('拍照导入'),
+                title: Text(l10n.cameraImport),
                 onTap: () {
                   Navigator.pop(context);
-                  _scanDocument(); // Use Cunning Document Scanner for better document scanning
+                  _scanDocument();
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.image),
-                title: const Text('从相册导入'),
+                title: Text(l10n.galleryImport),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickAndProcessImage(source: ImageSource.gallery); // This will now navigate to editor after OCR
+                  _pickAndProcessImage(source: ImageSource.gallery);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.edit),
-                title: const Text('手动输入'),
+                title: Text(l10n.manualInput),
                 onTap: () {
                   Navigator.pop(context);
                   _navigateToEditorPage();
@@ -217,13 +223,14 @@ class _OcrPageState extends State<OcrPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('名片管理'),
+        title: Text(l10n.cardManagement),
       ),
       body: _businessCards.isEmpty
-          ? const Center(
-              child: Text('点击右下角加号导入名片'),
+          ? Center(
+              child: Text(l10n.clickPlusToImport),
             )
           : ListView.builder(
               padding: const EdgeInsets.all(8.0),

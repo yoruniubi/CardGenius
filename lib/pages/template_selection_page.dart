@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:business_card_ocr/models/template.dart';
 import 'package:business_card_ocr/models/element.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:business_card_ocr/l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
 
 class TemplateSelectionPage extends StatefulWidget {
@@ -12,37 +13,41 @@ class TemplateSelectionPage extends StatefulWidget {
 }
 
 class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
-  // 统一的文字元素布局，添加 tag 以支持实时更新
-  List<CardElement> _getUnifiedElements() {
+  // Unified text element layout with tags for real-time updates
+  List<CardElement> _getUnifiedElements(AppLocalizations l10n) {
     return [
-      TextElement(x: 25, y: 15, content: '姓名', tag: 'name', fontSize: 26, isBold: true, color: Colors.black),
-      TextElement(x: 25, y: 48, content: '职位', tag: 'title', fontSize: 14, color: Colors.black87),
-      TextElement(x: 25, y: 70, content: '公司名称', tag: 'company', fontSize: 18, isBold: true, color: Colors.black),
-      TextElement(x: 25, y: 95, content: '电话: 123-4567-8901', tag: 'phone', fontSize: 12, color: Colors.black54),
-      TextElement(x: 25, y: 112, content: '邮箱: example@mail.com', tag: 'email', fontSize: 12, color: Colors.black54),
-      TextElement(x: 25, y: 130, content: '地址: 示例详细地址', tag: 'address', fontSize: 11, color: Colors.black45),
-      TextElement(x: 25, y: 148, content: '网址: www.example.com', tag: 'website', fontSize: 11, color: Colors.blue.shade700),
+      TextElement(x: 25, y: 15, content: l10n.name, tag: 'name', fontSize: 26, isBold: true, color: Colors.black),
+      TextElement(x: 25, y: 48, content: l10n.jobTitle, tag: 'title', fontSize: 14, color: Colors.black87),
+      TextElement(x: 25, y: 70, content: l10n.company, tag: 'company', fontSize: 18, isBold: true, color: Colors.black),
+      TextElement(x: 25, y: 95, content: '${l10n.phone}: 123-4567-8901', tag: 'phone', fontSize: 12, color: Colors.black54),
+      TextElement(x: 25, y: 112, content: '${l10n.email}: example@mail.com', tag: 'email', fontSize: 12, color: Colors.black54),
+      TextElement(x: 25, y: 130, content: '${l10n.address}: 示例详细地址', tag: 'address', fontSize: 11, color: Colors.black45),
+      TextElement(x: 25, y: 148, content: '${l10n.website}: www.example.com', tag: 'website', fontSize: 11, color: Colors.blue.shade700),
     ];
   }
 
-  late final List<BusinessCardTemplate> _availableTemplates;
+  List<BusinessCardTemplate>? _availableTemplates;
 
   @override
-  void initState() {
-    super.initState();
-    // 初始化 1-7 号模板
-    _availableTemplates = List.generate(7, (index) {
-      final id = index + 1;
-      return BusinessCardTemplate(
-        id: 'template_$id',
-        name: '模板 $id',
-        previewImagePath: 'assets/$id.png',
-        elements: _getUnifiedElements(),
-      );
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_availableTemplates == null) {
+      final l10n = AppLocalizations.of(context)!;
+      // Initialize templates 1-7
+      _availableTemplates = List.generate(7, (index) {
+        final id = index + 1;
+        return BusinessCardTemplate(
+          id: 'template_$id',
+          name: l10n.templateName(id.toString()),
+          previewImagePath: 'assets/$id.png',
+          elements: _getUnifiedElements(l10n),
+        );
+      });
+    }
   }
 
   Future<void> _pickCustomBackground() async {
+    final l10n = AppLocalizations.of(context)!;
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
     );
@@ -50,9 +55,9 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     if (result != null && result.files.single.path != null) {
       final customTemplate = BusinessCardTemplate(
         id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
-        name: '自定义背景',
+        name: l10n.customBackground,
         previewImagePath: result.files.single.path,
-        elements: _getUnifiedElements(),
+        elements: _getUnifiedElements(l10n),
       );
       if (mounted) {
         Navigator.pop(context, customTemplate);
@@ -63,6 +68,9 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final templates = _availableTemplates ?? [];
+
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
@@ -70,7 +78,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          '选择名片模板',
+          l10n.selectTemplate,
           style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
         ),
       ),
@@ -82,10 +90,10 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),
-        itemCount: _availableTemplates.length + 1,
+        itemCount: templates.length + 1,
         itemBuilder: (context, index) {
-          if (index == _availableTemplates.length) {
-            // 自定义上传选项
+          if (index == templates.length) {
+            // Custom upload option
             return ShadCard(
               padding: const EdgeInsets.all(0),
               child: InkWell(
@@ -108,7 +116,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                '上传背景',
+                                l10n.uploadBackground,
                                 style: theme.textTheme.small.copyWith(
                                   color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.bold,
@@ -125,12 +133,12 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '自定义模板',
+                            l10n.customBackground,
                             style: theme.textTheme.small.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '使用本地图片',
+                            l10n.useLocalImage,
                             style: theme.textTheme.muted.copyWith(fontSize: 10),
                           ),
                         ],
@@ -142,7 +150,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             );
           }
 
-          final template = _availableTemplates[index];
+          final template = templates[index];
           return ShadCard(
             padding: const EdgeInsets.all(0),
             child: InkWell(
@@ -188,7 +196,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${template.elements.length} 个设计元素',
+                          l10n.templateCount(template.elements.length),
                           style: theme.textTheme.muted.copyWith(fontSize: 10),
                         ),
                       ],

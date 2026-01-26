@@ -100,5 +100,31 @@
   "scanToSaveContact": "Scan to save contact",
   "close": "Close",
   "basicInfo": "Basic Info",
-  "saveCard": "Save Card"
+  "saveCard": "Save Card",
+  "templateCount": "{count} design elements",
+  "@templateCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "templateName": "Template {id}",
+  "@templateName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "customBackground": "Custom Background",
+  "selectTemplate": "Select Template",
+  "uploadBackground": "Upload Background",
+  "useLocalImage": "Use Local Image",
+  "ocrWebNotSupported": "OCR Plugin does not support Web platform.",
+  "cardPreview": "Card Preview",
+  "backToEdit": "Back to Edit",
+  "savedTemplate": "Saved Template",
+  "unknownName": "Unknown Name",
+  "clickPlusToImport": "Click the + button to import a card"
 }

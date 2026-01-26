@@ -256,4 +256,44 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get saveCard => '保存名片';
+
+  @override
+  String templateCount(int count) {
+    return '$count 个设计元素';
+  }
+
+  @override
+  String templateName(String id) {
+    return '模板 $id';
+  }
+
+  @override
+  String get customBackground => '自定义背景';
+
+  @override
+  String get selectTemplate => '选择名片模板';
+
+  @override
+  String get uploadBackground => '上传背景';
+
+  @override
+  String get useLocalImage => '使用本地图片';
+
+  @override
+  String get ocrWebNotSupported => 'OCR Plugin 不支持Web平台。';
+
+  @override
+  String get cardPreview => '名片预览';
+
+  @override
+  String get backToEdit => '返回编辑';
+
+  @override
+  String get savedTemplate => '已保存模板';
+
+  @override
+  String get unknownName => '未知姓名';
+
+  @override
+  String get clickPlusToImport => '点击右下角加号导入名片';
 }

@@ -46,19 +46,3 @@ English | [简体中文](./README.md)
     flutter run
     ```
 
-## 📂 Project Structure
-
--   `lib/models/`: Data models (BusinessCard, Element, Template, etc.).
--   `lib/pages/`: Application pages (Home, Editor, Management, Test, etc.).
--   `lib/providers/`: State management.
--   `lib/l10n/`: Internationalization (i18n) files.
--   `ocr_plugin/`: Custom OCR plugin implementation.
-
-## 📝 Roadmap
-- [ ] Add more professional card templates
-- [ ] Cloud synchronization support
-- [ ] Improve OCR recognition accuracy
-- [ ] Add category tags for card organization
-
-## 📄 License
-This project is licensed under the [MIT License](LICENSE).

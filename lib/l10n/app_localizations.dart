@@ -583,6 +583,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save Card'**
   String get saveCard;
+
+  /// No description provided for @templateCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} design elements'**
+  String templateCount(int count);
+
+  /// No description provided for @templateName.
+  ///
+  /// In en, this message translates to:
+  /// **'Template {id}'**
+  String templateName(String id);
+
+  /// No description provided for @customBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Background'**
+  String get customBackground;
+
+  /// No description provided for @selectTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Template'**
+  String get selectTemplate;
+
+  /// No description provided for @uploadBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Background'**
+  String get uploadBackground;
+
+  /// No description provided for @useLocalImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Local Image'**
+  String get useLocalImage;
+
+  /// No description provided for @ocrWebNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'OCR Plugin does not support Web platform.'**
+  String get ocrWebNotSupported;
+
+  /// No description provided for @cardPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Preview'**
+  String get cardPreview;
+
+  /// No description provided for @backToEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Edit'**
+  String get backToEdit;
+
+  /// No description provided for @savedTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Template'**
+  String get savedTemplate;
+
+  /// No description provided for @unknownName.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Name'**
+  String get unknownName;
+
+  /// No description provided for @clickPlusToImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Click the + button to import a card'**
+  String get clickPlusToImport;
 }
 
 class _AppLocalizationsDelegate

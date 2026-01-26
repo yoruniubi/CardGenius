@@ -5,7 +5,7 @@ abstract class CardElement {
   double x;
   double y;
   String type; // 'text' or 'image'
-  String? tag; // 用于标识元素用途，如 'name', 'company' 等
+  String? tag; // Identifier for element purpose, e.g., 'name', 'company'
 
   CardElement({required this.x, required this.y, required this.type, this.tag});
 

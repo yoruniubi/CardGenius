@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:business_card_ocr/models/business_card.dart';
 import 'package:business_card_ocr/models/element.dart';
 import 'package:business_card_ocr/models/template.dart';
-import 'package:business_card_ocr/pages/template_selection_page.dart'; // For navigating to template selection
+import 'package:business_card_ocr/pages/template_selection_page.dart';
+import 'package:business_card_ocr/l10n/app_localizations.dart';
 
 class CardPreviewPage extends StatefulWidget {
   final List<CardElement> cardElements;
@@ -36,6 +37,7 @@ class _CardPreviewPageState extends State<CardPreviewPage> {
   }
 
   void _applyBusinessCardDataToElements() {
+    final l10n = AppLocalizations.of(context)!;
     for (var element in _previewElements) {
       if (element is TextElement && element.tag != null) {
         switch (element.tag) {
@@ -50,19 +52,19 @@ class _CardPreviewPageState extends State<CardPreviewPage> {
             break;
           case 'phone':
             final phone = widget.businessCard.phone ?? '';
-            element.content = phone.isEmpty ? '' : '电话: $phone';
+            element.content = phone.isEmpty ? '' : '${l10n.phone}: $phone';
             break;
           case 'email':
             final email = widget.businessCard.email ?? '';
-            element.content = email.isEmpty ? '' : '邮箱: $email';
+            element.content = email.isEmpty ? '' : '${l10n.email}: $email';
             break;
           case 'address':
             final address = widget.businessCard.address ?? '';
-            element.content = address.isEmpty ? '' : '地址: $address';
+            element.content = address.isEmpty ? '' : '${l10n.address}: $address';
             break;
           case 'website':
             final website = widget.businessCard.website ?? '';
-            element.content = website.isEmpty ? '' : '网址: $website';
+            element.content = website.isEmpty ? '' : '${l10n.website}: $website';
             break;
         }
       }
@@ -91,9 +93,10 @@ class _CardPreviewPageState extends State<CardPreviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('名片预览'),
+        title: Text(l10n.cardPreview),
       ),
       body: Column(
         children: [
@@ -178,11 +181,20 @@ class _CardPreviewPageState extends State<CardPreviewPage> {
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); // Go back to the previous page
-              },
-              child: const Text('返回编辑'),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _templateSetting,
+                  child: Text(l10n.template),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(l10n.backToEdit),
+                ),
+              ],
             ),
           ),
         ],

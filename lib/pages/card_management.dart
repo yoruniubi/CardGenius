@@ -131,7 +131,7 @@ class _CardPageState extends State<CardPage> {
     setState(() {
       _currentTemplate = template;
       _cardElements = List.from(template.elements);
-      _updatePreview(); // 加载模板后立即应用当前输入的内容
+      _updatePreview();
       debugPrint('Loaded template: ${_currentTemplate!.name}');
     });
   }
@@ -171,7 +171,6 @@ class _CardPageState extends State<CardPage> {
           _websiteController.clear();
           _notesController.clear();
           _currentTemplate = null;
-          // 恢复默认元素位置
           _cardElements = [
             TextElement(content: '', tag: 'name', x: 25, y: 15, fontSize: 26, isBold: true, color: Colors.black),
             TextElement(content: '', tag: 'title', x: 25, y: 48, fontSize: 14, color: Colors.black87),
@@ -199,7 +198,6 @@ class _CardPageState extends State<CardPage> {
       if (cardJson != null) {
         final Map<String, dynamic> data = json.decode(cardJson);
         setState(() {
-          // 1. 先恢复文本内容
           _nameController.text = data['name'] ?? '';
           _companyController.text = data['company'] ?? '';
           _titleController.text = data['title'] ?? '';
@@ -209,7 +207,6 @@ class _CardPageState extends State<CardPage> {
           _websiteController.text = data['website'] ?? '';
           _notesController.text = data['notes'] ?? '';
 
-          // 2. 恢复模板信息
           if (data['template_id'] != null) {
             final templateId = data['template_id'] as String;
             final previewPath = data['template_preview_path'] as String?;
@@ -218,25 +215,23 @@ class _CardPageState extends State<CardPage> {
               id: templateId,
               name: data['template_name'] ?? '已保存模板',
               previewImagePath: previewPath,
-              elements: [], // 暂时为空，下面会恢复或初始化
+              elements: [],
             );
           }
 
-          // 3. 恢复元素位置和样式
           if (data['elements'] != null) {
             var elementsList = data['elements'] as List;
             _cardElements = elementsList
                 .map((e) => CardElement.fromJson(e as Map<String, dynamic>))
                 .toList();
 
-            // 自动补全缺失的 website 元素
+            // Ensure website element exists
             bool hasWebsite = _cardElements.any((e) => e is TextElement && e.tag == 'website');
             if (!hasWebsite) {
               _cardElements.add(TextElement(content: '', tag: 'website', x: 25, y: 148, fontSize: 11, color: Colors.blue.shade700));
             }
           }
 
-          // 4. 同步最新的文本到元素中
           _updatePreview();
         });
       }
@@ -247,7 +242,6 @@ class _CardPageState extends State<CardPage> {
 
   Future<void> _saveCardToLocal() async {
     final l10n = AppLocalizations.of(context)!;
-    // 表单校验
     if (_nameController.text.trim().isEmpty) {
       scaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(
@@ -274,7 +268,7 @@ class _CardPageState extends State<CardPage> {
         'template_id': _currentTemplate?.id,
         'template_name': _currentTemplate?.name,
         'template_preview_path': _currentTemplate?.previewImagePath,
-        'elements': _cardElements.map((e) => e.toJson()).toList(), // 保存元素位置
+        'elements': _cardElements.map((e) => e.toJson()).toList(),
       };
 
       final success = await prefs.setString('my_business_card', json.encode(cardData));
@@ -442,7 +436,7 @@ class _CardPageState extends State<CardPage> {
                         });
                       },
                       child: Container(
-                        constraints: const BoxConstraints(maxWidth: 250), // 限制最大宽度以触发自适应
+                        constraints: const BoxConstraints(maxWidth: 250),
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
