@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -18,6 +19,8 @@ class OcrTestPage extends StatefulWidget {
 
 class _OcrTestPageState extends State<OcrTestPage> {
   final OcrPlugin _ocrPlugin = OcrPlugin();
+  bool _isOcrInitialized = false;
+  Future<bool>? _ocrInitFuture;
   final ImagePicker _picker = ImagePicker();
   
   String _rawRecognizedText = '';
@@ -28,20 +31,36 @@ class _OcrTestPageState extends State<OcrTestPage> {
   @override
   void initState() {
     super.initState();
-    _initializeOcrPlugin();
+    _ocrInitFuture = _initializeOcrPlugin();
   }
 
-  Future<void> _initializeOcrPlugin() async {
+  Future<bool> _initializeOcrPlugin() async {
     try {
-      await _ocrPlugin.init(
+      final bool? success = await _ocrPlugin.init(
         modelPath: "models/ch_PP-OCRv4",
         labelPath: "labels/ppocr_keys_v1.txt",
         cpuThreadNum: 4,
         cpuPowerMode: "LITE_POWER_HIGH",
       );
+      _isOcrInitialized = success == true;
     } catch (e) {
+      _isOcrInitialized = false;
       debugPrint('Error initializing OCR Plugin: $e');
     }
+    return _isOcrInitialized;
+  }
+
+  Future<bool> _ensureOcrInitialized({bool retryOnFailure = true}) async {
+    _ocrInitFuture ??= _initializeOcrPlugin();
+    bool isReady = await _ocrInitFuture!;
+
+    if (!isReady && retryOnFailure) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      _ocrInitFuture = _initializeOcrPlugin();
+      isReady = await _ocrInitFuture!;
+    }
+
+    return isReady;
   }
 
   @override
@@ -64,15 +83,18 @@ class _OcrTestPageState extends State<OcrTestPage> {
       });
 
       if (!kIsWeb) {
-        final ocrResult = await _ocrPlugin.recognizeText(image.path);
-        if (ocrResult != null && ocrResult['simpleText'] != null) {
-          final text = ocrResult['simpleText'] as String;
-          final card = await BusinessCard.fromOcrTextAsync(text, imagePath: image.path);
-          
-          setState(() {
-            _rawRecognizedText = text;
-            _extractedCard = card;
-          });
+        final bool ocrReady = await _ensureOcrInitialized();
+        if (ocrReady) {
+          final ocrResult = await _ocrPlugin.recognizeText(image.path);
+          if (ocrResult != null && ocrResult['simpleText'] != null) {
+            final text = ocrResult['simpleText'] as String;
+            final card = await BusinessCard.fromOcrTextAsync(text, imagePath: image.path);
+
+            setState(() {
+              _rawRecognizedText = text;
+              _extractedCard = card;
+            });
+          }
         }
       }
     } catch (e) {
@@ -257,6 +279,18 @@ class _OcrTestPageState extends State<OcrTestPage> {
 
   Widget _buildResultPreview(ShadThemeData theme, AppLocalizations l10n) {
     final card = _extractedCard!;
+    final structuredResult = <String, dynamic>{
+      'name': card.name,
+      'title': card.title,
+      'company': card.company,
+      'phone': card.phone,
+      'email': card.email,
+      'address': card.address,
+      'website': card.website,
+    }..removeWhere((key, value) => value == null || (value is String && value.trim().isEmpty));
+
+    final prettyJson = const JsonEncoder.withIndent('  ').convert(structuredResult);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -264,29 +298,13 @@ class _OcrTestPageState extends State<OcrTestPage> {
         color: theme.colorScheme.muted.withOpacity(0.5),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPreviewItem(l10n.name, card.name),
-          if (card.company != null) _buildPreviewItem(l10n.company, card.company!),
-          if (card.phone != null) _buildPreviewItem(l10n.phone, card.phone!),
-          if (card.email != null) _buildPreviewItem(l10n.email, card.email!),
-          if (card.address != null) _buildPreviewItem(l10n.address, card.address!),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreviewItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(fontSize: 13, color: Colors.black87),
-          children: [
-            TextSpan(text: '$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-            TextSpan(text: value),
-          ],
+      child: SelectableText(
+        prettyJson,
+        style: const TextStyle(
+          fontFamily: 'monospace',
+          fontSize: 13,
+          height: 1.4,
+          color: Colors.black87,
         ),
       ),
     );

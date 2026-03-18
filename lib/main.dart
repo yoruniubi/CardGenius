@@ -110,6 +110,8 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   final OcrPlugin _ocrPlugin = OcrPlugin();
+  bool _isOcrInitialized = false;
+  Future<bool>? _ocrInitFuture;
   final ImagePicker _picker = ImagePicker();
   final List<BusinessCard> _businessCards = [];
   List<BusinessCard> _filteredBusinessCards = [];
@@ -121,7 +123,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _initializeOcrPlugin();
+    _ocrInitFuture = _initializeOcrPlugin();
     _loadBusinessCards();
     _filteredBusinessCards = _businessCards;
     _searchController.addListener(_onSearchChanged);
@@ -211,7 +213,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _initializeOcrPlugin() async {
+  Future<bool> _initializeOcrPlugin() async {
     try {
       final bool? success = await _ocrPlugin.init(
         modelPath: "models/ch_PP-OCRv4",
@@ -219,14 +221,30 @@ class _HomePageState extends State<HomePage> {
         cpuThreadNum: 4,
         cpuPowerMode: "LITE_POWER_HIGH",
       );
-      if (success == true) {
+      _isOcrInitialized = success == true;
+      if (_isOcrInitialized) {
         debugPrint('OCR Plugin initialized successfully.');
       } else {
         debugPrint('OCR Plugin initialization failed.');
       }
     } catch (e) {
+      _isOcrInitialized = false;
       debugPrint('Error initializing OCR Plugin: $e');
     }
+    return _isOcrInitialized;
+  }
+
+  Future<bool> _ensureOcrInitialized({bool retryOnFailure = true}) async {
+    _ocrInitFuture ??= _initializeOcrPlugin();
+    bool isReady = await _ocrInitFuture!;
+
+    if (!isReady && retryOnFailure) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      _ocrInitFuture = _initializeOcrPlugin();
+      isReady = await _ocrInitFuture!;
+    }
+
+    return isReady;
   }
 
   @override
@@ -245,12 +263,17 @@ class _HomePageState extends State<HomePage> {
       if (!kIsWeb) {
         debugPrint('Attempting Paddle OCR on mobile...');
         try {
-          final ocrResult = await _ocrPlugin.recognizeText(image.path);
-          if (ocrResult != null && ocrResult['simpleText'] != null) {
-            finalRecognizedText = ocrResult['simpleText'] as String;
-            debugPrint("OCR Plugin recognition result: $finalRecognizedText");
+          final bool ocrReady = await _ensureOcrInitialized();
+          if (ocrReady) {
+            final ocrResult = await _ocrPlugin.recognizeText(image.path);
+            if (ocrResult != null && ocrResult['simpleText'] != null) {
+              finalRecognizedText = ocrResult['simpleText'] as String;
+              debugPrint("OCR Plugin recognition result: $finalRecognizedText");
+            } else {
+              debugPrint("OCR Plugin failed to recognize text or returned incorrect format.");
+            }
           } else {
-            debugPrint("OCR Plugin failed to recognize text or returned incorrect format.");
+            debugPrint("OCR Plugin is not ready when trying to recognize text.");
           }
         } catch (e) {
           debugPrint('OCR Plugin exception: $e');
@@ -298,12 +321,17 @@ class _HomePageState extends State<HomePage> {
       if (!kIsWeb) {
         debugPrint('Processing scanned image, attempting Paddle OCR...');
         try {
-          final ocrResult = await _ocrPlugin.recognizeText(imagePath);
-          if (ocrResult != null && ocrResult['simpleText'] != null) {
-            finalRecognizedText = ocrResult['simpleText'] as String;
-            debugPrint("OCR Plugin recognition result: $finalRecognizedText");
+          final bool ocrReady = await _ensureOcrInitialized();
+          if (ocrReady) {
+            final ocrResult = await _ocrPlugin.recognizeText(imagePath);
+            if (ocrResult != null && ocrResult['simpleText'] != null) {
+              finalRecognizedText = ocrResult['simpleText'] as String;
+              debugPrint("OCR Plugin recognition result: $finalRecognizedText");
+            } else {
+              debugPrint("OCR Plugin failed to recognize text or returned incorrect format.");
+            }
           } else {
-            debugPrint("OCR Plugin failed to recognize text or returned incorrect format.");
+            debugPrint("OCR Plugin is not ready when trying to process scanned image.");
           }
         } catch (e) {
           debugPrint('OCR Plugin exception: $e');
