@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:business_card_ocr/models/element.dart';
 import 'package:business_card_ocr/pages/template_selection_page.dart';
@@ -9,7 +8,7 @@ import 'package:business_card_ocr/models/template.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+// import 'package:qr_flutter/qr_flutter.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:business_card_ocr/main.dart';
@@ -368,47 +367,47 @@ class _CardPageState extends State<CardPage> {
     }
   }
 
-  String _generateVCard() {
-    return 'BEGIN:VCARD'
-        'VERSION:3.0'
-        'FN:${_nameController.text}'
-        'ORG:${_companyController.text}'
-        'TITLE:${_titleController.text}'
-        'TEL;TYPE=CELL:${_phoneController.text}'
-        'EMAIL:${_emailController.text}'
-        'ADR;TYPE=WORK:;;${_addressController.text};;;;'
-        'END:VCARD';
-  }
+  // String _generateVCard() {
+  //   return 'BEGIN:VCARD'
+  //       'VERSION:3.0'
+  //       'FN:${_nameController.text}'
+  //       'ORG:${_companyController.text}'
+  //       'TITLE:${_titleController.text}'
+  //       'TEL;TYPE=CELL:${_phoneController.text}'
+  //       'EMAIL:${_emailController.text}'
+  //       'ADR;TYPE=WORK:;;${_addressController.text};;;;'
+  //       'END:VCARD';
+  // }
 
-  void _shareViaQrCode() {
-    final l10n = AppLocalizations.of(context)!;
-    final vCardData = _generateVCard();
+  // void _shareViaQrCode() {
+  //   final l10n = AppLocalizations.of(context)!;
+  //   final vCardData = _generateVCard();
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.scanToSaveContact),
-        content: SizedBox(
-          width: 250,
-          height: 250,
-          child: Center(
-            child: QrImageView(
-              data: vCardData,
-              version: QrVersions.auto,
-              size: 200.0,
-              backgroundColor: Colors.white,
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.close),
-          ),
-        ],
-      ),
-    );
-  }
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text(l10n.scanToSaveContact),
+  //       content: SizedBox(
+  //         width: 250,
+  //         height: 250,
+  //         child: Center(
+  //           child: QrImageView(
+  //             data: vCardData,
+  //             version: QrVersions.auto,
+  //             size: 200.0,
+  //             backgroundColor: Colors.white,
+  //           ),
+  //         ),
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: Text(l10n.close),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _templateSetting() async {
     final selectedTemplate = await Navigator.push<BusinessCardTemplate>(
@@ -624,14 +623,14 @@ class _CardPageState extends State<CardPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '我的电子名片',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF111827),
-            ),
-          ),
+          // const Text(
+          //   '我的电子名片',
+          //   style: TextStyle(
+          //     fontSize: 22,
+          //     fontWeight: FontWeight.w700,
+          //     color: Color(0xFF111827),
+          //   ),
+          // ),
           const SizedBox(height: 6),
           const Text(
             '用于展示、分享和管理你的数字名片形象。',
@@ -655,7 +654,7 @@ class _CardPageState extends State<CardPage> {
               _buildActionItem(
                 icon: Icons.share_outlined,
                 label: l10n.share,
-                onTap: _shareViaQrCode,
+                onTap: _exportAsJpg,
               ),
               const SizedBox(width: 10),
               _buildActionItem(
@@ -703,22 +702,6 @@ class _CardPageState extends State<CardPage> {
             ),
           ),
           const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: _exportAsJpg,
-              icon: const Icon(Icons.download_outlined),
-              label: Text(l10n.export),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF1677FF),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );

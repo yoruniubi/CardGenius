@@ -438,145 +438,84 @@ class _HomePageState extends State<HomePage> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE5E7EB)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                '扫描导入名片',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                _businessCards.isEmpty
-                                    ? l10n.scanButtonDescription
-                                    : '继续导入新的名片，并统一沉淀到本地联系人库。',
-                                style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280), height: 1.5),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEAF2FF),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.document_scanner_outlined, color: Color(0xFF1677FF)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: _showImportOptions,
-                        icon: const Icon(Icons.add, color: Colors.white),
-                        label: Text(
-                          l10n.importCard,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF1677FF),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${displayCards.length}',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE5E7EB)),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${displayCards.length}',
-                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '已保存名片',
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(width: 1, height: 32, color: const Color(0xFFE5E7EB)),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      flex: 2,
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          isDense: true,
-                          hintText: l10n.searchPlaceholder,
-                          prefixIcon: const Icon(Icons.search, size: 18),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  onPressed: () => _searchController.clear(),
-                                  icon: const Icon(Icons.close, size: 18),
-                                )
-                              : null,
-                          filled: true,
-                          fillColor: const Color(0xFFF9FAFB),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFF1677FF)),
-                          ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '已保存名片',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                Container(
+                  width: 1,
+                  height: 32,
+                  color: const Color(0xFFE5E7EB),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: l10n.searchPlaceholder,
+                      prefixIcon: const Icon(Icons.search, size: 18),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              onPressed: () => _searchController.clear(),
+                              icon: const Icon(Icons.close, size: 18),
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: const Color(0xFFF9FAFB),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFF1677FF)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         Expanded(
           child: displayCards.isEmpty
               ? _buildEmptyState(l10n)
               : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                   itemCount: displayCards.length,
                   itemBuilder: (context, index) {
                     final card = displayCards[index];
@@ -593,7 +532,9 @@ class _HomePageState extends State<HomePage> {
                               foregroundColor: Colors.white,
                               icon: Icons.share_outlined,
                               label: l10n.share,
-                              borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+                              borderRadius: const BorderRadius.horizontal(
+                                left: Radius.circular(14),
+                              ),
                             ),
                             SlidableAction(
                               onPressed: (context) => _deleteBusinessCard(card),
@@ -601,7 +542,9 @@ class _HomePageState extends State<HomePage> {
                               foregroundColor: Colors.white,
                               icon: Icons.delete_outline,
                               label: l10n.delete,
-                              borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+                              borderRadius: const BorderRadius.horizontal(
+                                right: Radius.circular(14),
+                              ),
                             ),
                           ],
                         ),
@@ -704,7 +647,9 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _selectedIndex == 0 ? l10n.cardManagement : (_selectedIndex == 1 ? l10n.myCards : l10n.settings),
+          _selectedIndex == 0
+              ? l10n.cardManagement
+              : (_selectedIndex == 1 ? l10n.myCards : l10n.settings),
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
         ),
       ),
@@ -716,6 +661,49 @@ class _HomePageState extends State<HomePage> {
           const OcrTestPage(showAppBar: false),
         ],
       ),
+      floatingActionButton: _selectedIndex == 0
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: _showImportOptions,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 23, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1677FF),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x261677FF),
+                        blurRadius: 16,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.add_a_photo_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.importCard,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
