@@ -201,7 +201,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseEnterNotes => 'Please enter notes';
 
   @override
-  String get saveAndReturn => 'Save and Return';
+  String get saveAndReturn => 'Save Card';
 
   @override
   String get nameCannotBeEmpty => 'Name cannot be empty';

@@ -1,310 +1,304 @@
-import 'dart:io';
-import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:ocr_plugin/ocr_plugin.dart';
-import 'package:business_card_ocr/main.dart';
-import 'package:business_card_ocr/models/business_card.dart';
 import 'package:business_card_ocr/providers/locale_provider.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
+import 'package:business_card_ocr/services/ocr_service.dart';
 
-class OcrTestPage extends StatefulWidget {
-  const OcrTestPage({super.key});
+class OcrTestPage extends StatelessWidget {
+  const OcrTestPage({super.key, this.showAppBar = true});
 
-  @override
-  State<OcrTestPage> createState() => _OcrTestPageState();
-}
-
-class _OcrTestPageState extends State<OcrTestPage> {
-  final OcrPlugin _ocrPlugin = OcrPlugin();
-  bool _isOcrInitialized = false;
-  Future<bool>? _ocrInitFuture;
-  final ImagePicker _picker = ImagePicker();
-  
-  String _rawRecognizedText = '';
-  String? _imagePath;
-  bool _isProcessing = false;
-  BusinessCard? _extractedCard;
-
-  @override
-  void initState() {
-    super.initState();
-    _ocrInitFuture = _initializeOcrPlugin();
-  }
-
-  Future<bool> _initializeOcrPlugin() async {
-    try {
-      final bool? success = await _ocrPlugin.init(
-        modelPath: "models/ch_PP-OCRv4",
-        labelPath: "labels/ppocr_keys_v1.txt",
-        cpuThreadNum: 4,
-        cpuPowerMode: "LITE_POWER_HIGH",
-      );
-      _isOcrInitialized = success == true;
-    } catch (e) {
-      _isOcrInitialized = false;
-      debugPrint('Error initializing OCR Plugin: $e');
-    }
-    return _isOcrInitialized;
-  }
-
-  Future<bool> _ensureOcrInitialized({bool retryOnFailure = true}) async {
-    _ocrInitFuture ??= _initializeOcrPlugin();
-    bool isReady = await _ocrInitFuture!;
-
-    if (!isReady && retryOnFailure) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      _ocrInitFuture = _initializeOcrPlugin();
-      isReady = await _ocrInitFuture!;
-    }
-
-    return isReady;
-  }
-
-  @override
-  void dispose() {
-    _ocrPlugin.release();
-    super.dispose();
-  }
-
-  Future<void> _runOcrTool({required ImageSource source}) async {
-    final l10n = AppLocalizations.of(context)!;
-    try {
-      final XFile? image = await _picker.pickImage(source: source);
-      if (image == null) return;
-
-      setState(() {
-        _imagePath = image.path;
-        _isProcessing = true;
-        _rawRecognizedText = '';
-        _extractedCard = null;
-      });
-
-      if (!kIsWeb) {
-        final bool ocrReady = await _ensureOcrInitialized();
-        if (ocrReady) {
-          final ocrResult = await _ocrPlugin.recognizeText(image.path);
-          if (ocrResult != null && ocrResult['simpleText'] != null) {
-            final text = ocrResult['simpleText'] as String;
-            final card = await BusinessCard.fromOcrTextAsync(text, imagePath: image.path);
-
-            setState(() {
-              _rawRecognizedText = text;
-              _extractedCard = card;
-            });
-          }
-        }
-      }
-    } catch (e) {
-      scaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(content: Text(l10n.toolFailed(e.toString()))),
-      );
-    } finally {
-      setState(() => _isProcessing = false);
-    }
-  }
+  final bool showAppBar;
 
   @override
   Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    
-    return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- Settings Section ---
-            _buildSectionHeader(theme, l10n.basicSettings, LucideIcons.settings),
-            const SizedBox(height: 12),
-            ShadCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildSettingRow(
-                    theme,
-                    label: l10n.languageSettings,
-                    trailing: ShadSelect<String>(
-                      placeholder: Text(l10n.languageSettings),
-                      initialValue: localeProvider.languageCode,
-                      options: [
-                        ShadOption(value: 'system', child: Text(l10n.followSystem)),
-                        ShadOption(value: 'zh', child: Text(l10n.simplifiedChinese)),
-                        ShadOption(value: 'en', child: Text(l10n.english)),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) {
-                          localeProvider.setLanguage(v);
-                        }
-                      },
-                      selectedOptionBuilder: (context, value) {
-                        switch (value) {
-                          case 'zh':
-                            return Text(l10n.simplifiedChinese);
-                          case 'en':
-                            return Text(l10n.english);
-                          default:
-                            return Text(l10n.followSystem);
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 32),
-
-            // --- Toolbox Section ---
-            _buildSectionHeader(theme, l10n.smartToolbox, LucideIcons.box),
-            const SizedBox(height: 12),
-            
-            // OCR Tool Card
-            ShadCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(LucideIcons.scanText, color: theme.colorScheme.primary, size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(l10n.smartTextExtraction, style: theme.textTheme.large.copyWith(fontWeight: FontWeight.bold)),
-                            Text(l10n.extractStructuredInfo, style: theme.textTheme.muted),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ShadButton.secondary(
-                          onPressed: _isProcessing ? null : () => _runOcrTool(source: ImageSource.gallery),
-                          child: Text(l10n.selectImage),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ShadButton(
-                          onPressed: _isProcessing ? null : () => _runOcrTool(source: ImageSource.camera),
-                          child: Text(l10n.takePhoto),
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  if (_isProcessing)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 20),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-
-                  if (_extractedCard != null) ...[
-                    const SizedBox(height: 24),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    Text(l10n.extractionPreview, style: theme.textTheme.small.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    _buildResultPreview(theme, l10n),
-                  ],
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // --- About Section ---
-            _buildSectionHeader(theme, l10n.about, LucideIcons.info),
-            const SizedBox(height: 12),
-            ShadCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildSettingRow(theme, label: l10n.softwareVersion, trailing: Text('v1.0.0', style: theme.textTheme.muted)),
-                  const Divider(height: 32),
-                  _buildSettingRow(theme, label: l10n.ocrEngineStatus, trailing: Text('${l10n.ready} (PaddleOCR)', style: theme.textTheme.muted.copyWith(color: Colors.green))),
-                ],
-              ),
-            ),
-            const SizedBox(height: 40),
-          ],
+    final content = ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      children: [
+        const Text(
+          '应用设置',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF111827),
+          ),
         ),
+        const SizedBox(height: 6),
+        const Text(
+          '管理语言、识别引擎状态与应用版本信息。',
+          style: TextStyle(
+            fontSize: 13,
+            color: Color(0xFF6B7280),
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 20),
+        _Panel(
+          child: Column(
+            children: [
+              _SettingTile(
+                icon: Icons.language_outlined,
+                title: l10n.languageSettings,
+                trailing: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: localeProvider.languageCode,
+                    borderRadius: BorderRadius.circular(12),
+                    items: [
+                      DropdownMenuItem(
+                        value: 'system',
+                        child: Text(l10n.followSystem),
+                      ),
+                      DropdownMenuItem(
+                        value: 'zh',
+                        child: Text(l10n.simplifiedChinese),
+                      ),
+                      DropdownMenuItem(
+                        value: 'en',
+                        child: Text(l10n.english),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        localeProvider.setLanguage(value);
+                      }
+                    },
+                  ),
+                ),
+              ),
+              const Divider(height: 1),
+              AnimatedBuilder(
+                animation: OcrService.instance,
+                builder: (context, _) {
+                  final bool isOcrReady = OcrService.instance.isInitialized;
+                  return _SettingTile(
+                    icon: Icons.memory_outlined,
+                    title: l10n.ocrEngineStatus,
+                    trailing: _StatusBadge(
+                      text: isOcrReady
+                          ? '${l10n.ready} · PaddleOCR'
+                          : 'Not Ready',
+                      isReady: isOcrReady,
+                    ),
+                  );
+                },
+              ),
+              const Divider(height: 1),
+              const _SettingTile(
+                icon: Icons.info_outline,
+                title: '软件版本',
+                trailing: Text(
+                  'v1.0.0',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (!showAppBar) {
+      return const ColoredBox(
+        color: Color(0xFFF5F6F8),
+        child: SafeArea(
+          top: false,
+          child: _SettingsBody(),
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6F8),
+      appBar: AppBar(
+        title: Text(l10n.settings),
+        centerTitle: false,
       ),
+      body: content,
     );
   }
+}
 
-  Widget _buildSectionHeader(ShadThemeData theme, String title, IconData icon) {
-    return Row(
+class _SettingsBody extends StatelessWidget {
+  const _SettingsBody();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
-        Icon(icon, size: 18, color: theme.colorScheme.mutedForeground),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: theme.textTheme.small.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.mutedForeground,
-            letterSpacing: 1,
+        _Panel(
+          child: Column(
+            children: [
+              _SettingTile(
+                icon: Icons.language_outlined,
+                title: l10n.languageSettings,
+                trailing: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: localeProvider.languageCode,
+                    borderRadius: BorderRadius.circular(12),
+                    items: [
+                      DropdownMenuItem(
+                        value: 'system',
+                        child: Text(l10n.followSystem),
+                      ),
+                      DropdownMenuItem(
+                        value: 'zh',
+                        child: Text(l10n.simplifiedChinese),
+                      ),
+                      DropdownMenuItem(
+                        value: 'en',
+                        child: Text(l10n.english),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        localeProvider.setLanguage(value);
+                      }
+                    },
+                  ),
+                ),
+              ),
+              const Divider(height: 1),
+              AnimatedBuilder(
+                animation: OcrService.instance,
+                builder: (context, _) {
+                  final bool isOcrReady = OcrService.instance.isInitialized;
+                  return _SettingTile(
+                    icon: Icons.memory_outlined,
+                    title: l10n.ocrEngineStatus,
+                    trailing: _StatusBadge(
+                      text: isOcrReady
+                          ? '${l10n.ready} · PaddleOCR'
+                          : 'Not Ready',
+                      isReady: isOcrReady,
+                    ),
+                  );
+                },
+              ),
+              const Divider(height: 1),
+              const _SettingTile(
+                icon: Icons.info_outline,
+                title: '软件版本',
+                trailing: Text(
+                  'v1.0.0',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildSettingRow(ShadThemeData theme, {required String label, required Widget trailing}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: theme.textTheme.p.copyWith(fontWeight: FontWeight.w500)),
-        trailing,
-      ],
+class _Panel extends StatelessWidget {
+  const _Panel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFF0F1F3)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
+}
 
-  Widget _buildResultPreview(ShadThemeData theme, AppLocalizations l10n) {
-    final card = _extractedCard!;
-    final structuredResult = <String, dynamic>{
-      'name': card.name,
-      'title': card.title,
-      'company': card.company,
-      'phone': card.phone,
-      'email': card.email,
-      'address': card.address,
-      'website': card.website,
-    }..removeWhere((key, value) => value == null || (value is String && value.trim().isEmpty));
+class _SettingTile extends StatelessWidget {
+  const _SettingTile({
+    required this.title,
+    required this.trailing,
+    required this.icon,
+  });
 
-    final prettyJson = const JsonEncoder.withIndent('  ').convert(structuredResult);
+  final String title;
+  final Widget trailing;
+  final IconData icon;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.muted.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(8),
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: const Color(0xFF6B7280),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF111827),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          trailing,
+        ],
       ),
-      child: SelectableText(
-        prettyJson,
-        style: const TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 13,
-          height: 1.4,
-          color: Colors.black87,
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({
+    required this.text,
+    required this.isReady,
+  });
+
+  final String text;
+  final bool isReady;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isReady ? const Color(0xFFEAF7EE) : const Color(0xFFFFF4E5),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: isReady ? const Color(0xFF15803D) : const Color(0xFFB45309),
         ),
       ),
     );

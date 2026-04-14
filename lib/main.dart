@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:ocr_plugin/ocr_plugin.dart';
+// import 'package:ocr_plugin/ocr_plugin.dart';
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -13,9 +13,9 @@ import 'package:business_card_ocr/pages/editor_page.dart';
 import 'package:business_card_ocr/pages/card_management.dart';
 import 'package:business_card_ocr/pages/test.dart';
 import 'package:business_card_ocr/providers/locale_provider.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
-
+import 'package:antd_flutter_mobile/index.dart';
+import 'package:business_card_ocr/services/ocr_service.dart';
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 void main() {
@@ -23,7 +23,6 @@ void main() {
   runApp(const MyApp());
 }
 
-// MyApp Widget creates MaterialApp
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -50,55 +49,41 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ShadApp(
-      title: '名片智造',
-      debugShowCheckedModeBanner: false,
-      locale: localeProvider.locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      builder: (context, child) {
-        return ScaffoldMessenger(
-          key: scaffoldMessengerKey,
-          child: child!,
-        );
-      },
-      theme: ShadThemeData(
-        brightness: Brightness.light,
-        colorScheme: const ShadColorScheme(
-          background: Colors.white,
-          foreground: Color(0xFF020817),
-          card: Colors.white,
-          cardForeground: Color(0xFF020817),
-          popover: Colors.white,
-          popoverForeground: Color(0xFF020817),
-          primary: Color(0xFF0F172A),
-          primaryForeground: Color(0xFFF8FAFC),
-          secondary: Color(0xFFF1F5F9),
-          secondaryForeground: Color(0xFF0F172A),
-          muted: Color(0xFFF1F5F9),
-          mutedForeground: Color(0xFF64748B),
-          accent: Color(0xFFF1F5F9),
-          accentForeground: Color(0xFF0F172A),
-          destructive: Color(0xFFEF4444),
-          destructiveForeground: Color(0xFFF8FAFC),
-          border: Color(0xFFE2E8F0),
-          input: Color(0xFFE2E8F0),
-          ring: Color(0xFF0F172A),
-          selection: Color(0xFFCBD5E1),
+    return AntdProvider(
+      builder: (context, theme) => MaterialApp(
+        title: '名片智造',
+        debugShowCheckedModeBanner: false,
+        locale: localeProvider.locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        scaffoldMessengerKey: scaffoldMessengerKey,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF1677FF),
+            brightness: Brightness.light,
+            surface: Colors.white,
+          ),
+          scaffoldBackgroundColor: const Color(0xFFF5F6F8),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFFF5F6F8),
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            centerTitle: false,
+            surfaceTintColor: Colors.transparent,
+          ),
         ),
+        routes: {
+          '/': (context) => const HomePage(),
+          '/cardManagement': (context) => const CardPage(),
+          '/testPage': (context) => const OcrTestPage(),
+        },
+        initialRoute: '/',
       ),
-      // Define routes
-      routes: {
-        '/': (context) => const HomePage(),
-        '/cardManagement': (context) => const CardPage(),
-        '/testPage': (context) => const OcrTestPage(),
-      },
-      initialRoute: '/',
     );
   }
 }
 
-// HomePage Widget contains the actual content of the page
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -109,9 +94,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  final OcrPlugin _ocrPlugin = OcrPlugin();
-  bool _isOcrInitialized = false;
-  Future<bool>? _ocrInitFuture;
+  // final OcrPlugin _ocrPlugin = OcrPlugin();
+  // bool _isOcrInitialized = false;
+  // Future<bool>? _ocrInitFuture;
   final ImagePicker _picker = ImagePicker();
   final List<BusinessCard> _businessCards = [];
   List<BusinessCard> _filteredBusinessCards = [];
@@ -123,7 +108,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _ocrInitFuture = _initializeOcrPlugin();
+    // _ocrInitFuture = _initializeOcrPlugin();
     _loadBusinessCards();
     _filteredBusinessCards = _businessCards;
     _searchController.addListener(_onSearchChanged);
@@ -135,8 +120,9 @@ class _HomePageState extends State<HomePage> {
     if (cardsJson != null) {
       final List<dynamic> decodedList = jsonDecode(cardsJson);
       setState(() {
-        _businessCards.clear();
-        _businessCards.addAll(decodedList.map((e) => BusinessCard.fromJson(e)).toList());
+        _businessCards
+          ..clear()
+          ..addAll(decodedList.map((e) => BusinessCard.fromJson(e)).toList());
         _filterCards(_searchController.text);
       });
     }
@@ -213,43 +199,38 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<bool> _initializeOcrPlugin() async {
-    try {
-      final bool? success = await _ocrPlugin.init(
-        modelPath: "models/ch_PP-OCRv4",
-        labelPath: "labels/ppocr_keys_v1.txt",
-        cpuThreadNum: 4,
-        cpuPowerMode: "LITE_POWER_HIGH",
-      );
-      _isOcrInitialized = success == true;
-      if (_isOcrInitialized) {
-        debugPrint('OCR Plugin initialized successfully.');
-      } else {
-        debugPrint('OCR Plugin initialization failed.');
-      }
-    } catch (e) {
-      _isOcrInitialized = false;
-      debugPrint('Error initializing OCR Plugin: $e');
-    }
-    return _isOcrInitialized;
-  }
+  // Future<bool> _initializeOcrPlugin() async {
+  //   try {
+  //     final bool? success = await _ocrPlugin.init(
+  //       modelPath: 'models/ch_PP-OCRv4',
+  //       labelPath: 'labels/ppocr_keys_v1.txt',
+  //       cpuThreadNum: 4,
+  //       cpuPowerMode: 'LITE_POWER_HIGH',
+  //     );
+  //     _isOcrInitialized = success == true;
+  //   } catch (e) {
+  //     _isOcrInitialized = false;
+  //     debugPrint('Error initializing OCR Plugin: $e');
+  //   }
+  //   return _isOcrInitialized;
+  // }
 
-  Future<bool> _ensureOcrInitialized({bool retryOnFailure = true}) async {
-    _ocrInitFuture ??= _initializeOcrPlugin();
-    bool isReady = await _ocrInitFuture!;
+  // Future<bool> _ensureOcrInitialized({bool retryOnFailure = true}) async {
+  //   _ocrInitFuture ??= _initializeOcrPlugin();
+  //   bool isReady = await _ocrInitFuture!;
 
-    if (!isReady && retryOnFailure) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      _ocrInitFuture = _initializeOcrPlugin();
-      isReady = await _ocrInitFuture!;
-    }
+  //   if (!isReady && retryOnFailure) {
+  //     await Future.delayed(const Duration(milliseconds: 300));
+  //     _ocrInitFuture = _initializeOcrPlugin();
+  //     isReady = await _ocrInitFuture!;
+  //   }
 
-    return isReady;
-  }
+  //   return isReady;
+  // }
 
   @override
   void dispose() {
-    _ocrPlugin.release();
+    // _ocrPlugin.release();
     _searchController.dispose();
     super.dispose();
   }
@@ -260,31 +241,27 @@ class _HomePageState extends State<HomePage> {
       if (image == null) return;
 
       String finalRecognizedText = '';
+      bool hasOcrText = false;
       if (!kIsWeb) {
-        debugPrint('Attempting Paddle OCR on mobile...');
         try {
-          final bool ocrReady = await _ensureOcrInitialized();
-          if (ocrReady) {
-            final ocrResult = await _ocrPlugin.recognizeText(image.path);
-            if (ocrResult != null && ocrResult['simpleText'] != null) {
-              finalRecognizedText = ocrResult['simpleText'] as String;
-              debugPrint("OCR Plugin recognition result: $finalRecognizedText");
-            } else {
-              debugPrint("OCR Plugin failed to recognize text or returned incorrect format.");
-            }
-          } else {
-            debugPrint("OCR Plugin is not ready when trying to recognize text.");
+          // final bool ocrReady = await _ensureOcrInitialized();
+          final ocrResult = await OcrService.instance.recognizeText(image.path);
+          if (ocrResult != null && ocrResult['simpleText'] != null) {
+            finalRecognizedText = ocrResult['simpleText'] as String;
+            hasOcrText = finalRecognizedText.trim().isNotEmpty;
           }
         } catch (e) {
           debugPrint('OCR Plugin exception: $e');
         }
       } else {
         finalRecognizedText = 'OCR Plugin does not support Web platform.';
-        debugPrint(finalRecognizedText);
       }
 
-      if (finalRecognizedText.isNotEmpty && finalRecognizedText != 'OCR Plugin 不支持Web平台。') {
-        await _navigateToEditorPage(recognizedText: finalRecognizedText, imagePath: image.path);
+      if (hasOcrText) {
+        await _navigateToEditorPage(
+          recognizedText: finalRecognizedText,
+          imagePath: image.path,
+        );
       } else {
         await _navigateToEditorPage(imagePath: image.path);
       }
@@ -293,7 +270,6 @@ class _HomePageState extends State<HomePage> {
       scaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(content: Text(l10n.errorProcessingImage)),
       );
-      debugPrint('Top-level error during image processing: $e');
       await _navigateToEditorPage();
     }
   }
@@ -307,7 +283,6 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         scannedImagesPath = newImagesPath;
       });
-      debugPrint('Scanned Images path: $scannedImagesPath');
       if (scannedImagesPath.isNotEmpty) {
         await _processScannedImage(scannedImagesPath.first);
       }
@@ -317,32 +292,25 @@ class _HomePageState extends State<HomePage> {
   Future<void> _processScannedImage(String imagePath) async {
     try {
       String finalRecognizedText = '';
+      bool hasOcrText = false;
 
       if (!kIsWeb) {
-        debugPrint('Processing scanned image, attempting Paddle OCR...');
         try {
-          final bool ocrReady = await _ensureOcrInitialized();
-          if (ocrReady) {
-            final ocrResult = await _ocrPlugin.recognizeText(imagePath);
-            if (ocrResult != null && ocrResult['simpleText'] != null) {
-              finalRecognizedText = ocrResult['simpleText'] as String;
-              debugPrint("OCR Plugin recognition result: $finalRecognizedText");
-            } else {
-              debugPrint("OCR Plugin failed to recognize text or returned incorrect format.");
-            }
-          } else {
-            debugPrint("OCR Plugin is not ready when trying to process scanned image.");
+          final ocrResult = await OcrService.instance.recognizeText(imagePath);
+          if (ocrResult != null && ocrResult['simpleText'] != null) {
+            finalRecognizedText = ocrResult['simpleText'] as String;
+            hasOcrText = finalRecognizedText.trim().isNotEmpty;
           }
         } catch (e) {
           debugPrint('OCR Plugin exception: $e');
         }
-      } else {
-        finalRecognizedText = 'OCR Plugin does not support Web platform.';
-        debugPrint(finalRecognizedText);
       }
 
-      if (finalRecognizedText.isNotEmpty && finalRecognizedText != 'OCR Plugin 不支持Web平台。') {
-        await _navigateToEditorPage(recognizedText: finalRecognizedText, imagePath: imagePath);
+      if (hasOcrText) {
+        await _navigateToEditorPage(
+          recognizedText: finalRecognizedText,
+          imagePath: imagePath,
+        );
       } else {
         await _navigateToEditorPage(imagePath: imagePath);
       }
@@ -351,7 +319,6 @@ class _HomePageState extends State<HomePage> {
       scaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(content: Text(l10n.errorProcessingImage)),
       );
-      debugPrint('Error during scanned image processing: $e');
       await _navigateToEditorPage(imagePath: imagePath);
     }
   }
@@ -360,13 +327,16 @@ class _HomePageState extends State<HomePage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EditorPage(businessCard: card, recognizedText: recognizedText, imagePath: imagePath),
+        builder: (context) => EditorPage(
+          businessCard: card,
+          recognizedText: recognizedText,
+          imagePath: imagePath,
+        ),
       ),
     );
 
     if (result != null) {
       if (result is BusinessCard) {
-        // Save or Update
         setState(() {
           final index = _businessCards.indexWhere((element) => element.id == result.id);
           if (index != -1) {
@@ -378,122 +348,75 @@ class _HomePageState extends State<HomePage> {
         });
         _saveBusinessCards();
       } else if (result == 'delete' && card != null) {
-        // Delete
         _deleteBusinessCard(card);
       }
     }
   }
 
   void _showImportOptions() {
-    final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Container(
-                  width: 40,
+                  width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.muted,
-                    borderRadius: BorderRadius.circular(2),
+                    color: const Color(0xFFD1D5DB),
+                    borderRadius: BorderRadius.circular(999),
                   ),
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  l10n.importCard,
-                  style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildImportOption(
-                      icon: Icons.camera_alt_rounded,
-                      label: l10n.cameraImport,
-                      onTap: () {
-                        Navigator.pop(context);
-                        _scanDocument();
-                      },
-                    ),
-                    _buildImportOption(
-                      icon: Icons.image_rounded,
-                      label: l10n.galleryImport,
-                      onTap: () {
-                        Navigator.pop(context);
-                        _pickAndProcessImage(source: ImageSource.gallery);
-                      },
-                    ),
-                    _buildImportOption(
-                      icon: Icons.edit_note_rounded,
-                      label: l10n.manualInput,
-                      onTap: () {
-                        Navigator.pop(context);
-                        _navigateToEditorPage();
-                      },
-                    ),
-                  ],
+                const SizedBox(height: 18),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    l10n.importCard,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
                 ),
                 const SizedBox(height: 16),
+                _ActionSheetItem(
+                  icon: Icons.document_scanner_outlined,
+                  title: l10n.cameraImport,
+                  subtitle: '拍摄并自动裁切名片后识别联系人信息',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _scanDocument();
+                  },
+                ),
+                _ActionSheetItem(
+                  icon: Icons.photo_library_outlined,
+                  title: l10n.galleryImport,
+                  subtitle: '从相册选择已有名片图片进行识别',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickAndProcessImage(source: ImageSource.gallery);
+                  },
+                ),
+                _ActionSheetItem(
+                  icon: Icons.edit_note_outlined,
+                  title: l10n.manualInput,
+                  subtitle: '不识别图片，直接手动新增联系人',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _navigateToEditorPage();
+                  },
+                ),
               ],
             ),
           ),
         );
       },
-    );
-  }
-
-  Widget _buildImportOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final theme = ShadTheme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.colorScheme.primary.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              icon,
-              size: 30,
-              color: theme.colorScheme.primaryForeground,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: theme.textTheme.small.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.foreground,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -508,288 +431,460 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildOcrList() {
-    final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final displayCards = _isSearching ? _filteredBusinessCards : _businessCards;
 
-    if (displayCards.isEmpty) {
-      if (_isSearching && _searchController.text.isNotEmpty) {
-        return Center(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.search_off_rounded,
-                size: 64,
-                color: theme.colorScheme.mutedForeground,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                '扫描导入名片',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                _businessCards.isEmpty
+                                    ? l10n.scanButtonDescription
+                                    : '继续导入新的名片，并统一沉淀到本地联系人库。',
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280), height: 1.5),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEAF2FF),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.document_scanner_outlined, color: Color(0xFF1677FF)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _showImportOptions,
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        label: Text(
+                          l10n.importCard,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF1677FF),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.noMatchFound,
-                style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.tryAnotherKeyword,
-                style: theme.textTheme.muted,
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${displayCards.length}',
+                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '已保存名片',
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(width: 1, height: 32, color: const Color(0xFFE5E7EB)),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      flex: 2,
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          hintText: l10n.searchPlaceholder,
+                          prefixIcon: const Icon(Icons.search, size: 18),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  onPressed: () => _searchController.clear(),
+                                  icon: const Icon(Icons.close, size: 18),
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: const Color(0xFFF9FAFB),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFF1677FF)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        );
-      }
-      return Center(
+        ),
+        Expanded(
+          child: displayCards.isEmpty
+              ? _buildEmptyState(l10n)
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                  itemCount: displayCards.length,
+                  itemBuilder: (context, index) {
+                    final card = displayCards[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Slidable(
+                        key: ValueKey(card.id),
+                        endActionPane: ActionPane(
+                          motion: const ScrollMotion(),
+                          children: [
+                            SlidableAction(
+                              onPressed: (context) => _shareBusinessCard(card),
+                              backgroundColor: const Color(0xFF1677FF),
+                              foregroundColor: Colors.white,
+                              icon: Icons.share_outlined,
+                              label: l10n.share,
+                              borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+                            ),
+                            SlidableAction(
+                              onPressed: (context) => _deleteBusinessCard(card),
+                              backgroundColor: const Color(0xFFDC2626),
+                              foregroundColor: Colors.white,
+                              icon: Icons.delete_outline,
+                              label: l10n.delete,
+                              borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+                            ),
+                          ],
+                        ),
+                        child: _BusinessCardListTile(
+                          card: card,
+                          onTap: () => _navigateToEditorPage(card: card),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+  Widget _buildNavItem({
+    required int index,
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+  }) {
+    final bool isSelected = _selectedIndex == index;
+
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFDCEBFF) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.muted,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.contact_page_outlined,
-                size: 48,
-                color: theme.colorScheme.mutedForeground,
-              ),
+            Icon(
+              isSelected ? activeIcon : icon,
+              size: 22,
+              color: isSelected
+                  ? const Color(0xFF1677FF)
+                  : const Color(0xFF9CA3AF),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 4),
             Text(
-              l10n.startDigitalCardHolder,
-              style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 48),
-              child: Text(
-                l10n.scanButtonDescription,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.muted,
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? const Color(0xFF1677FF)
+                    : const Color(0xFF9CA3AF),
               ),
             ),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-      itemCount: displayCards.length,
-      itemBuilder: (context, index) {
-        final card = displayCards[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
-          child: Slidable(
-            key: ValueKey(card.id),
-            endActionPane: ActionPane(
-              motion: const ScrollMotion(),
-              children: [
-                SlidableAction(
-                  onPressed: (context) => _shareBusinessCard(card),
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.primaryForeground,
-                  icon: Icons.share_rounded,
-                  label: l10n.share,
-                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(0)),
-                ),
-                SlidableAction(
-                  onPressed: (context) => _deleteBusinessCard(card),
-                  backgroundColor: theme.colorScheme.destructive,
-                  foregroundColor: theme.colorScheme.destructiveForeground,
-                  icon: Icons.delete_rounded,
-                  label: l10n.delete,
-                  borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
-                ),
-              ],
-            ),
-            child: ShadCard(
-              padding: const EdgeInsets.all(0),
-              child: InkWell(
-                onTap: () => _navigateToEditorPage(card: card),
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: theme.colorScheme.muted,
-                          border: Border.all(color: theme.colorScheme.border, width: 0.5),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: card.imagePath != null && card.imagePath!.isNotEmpty
-                            ? Image.file(
-                                File(card.imagePath!),
-                                fit: BoxFit.cover,
-                              )
-                            : Icon(Icons.person, color: theme.colorScheme.mutedForeground),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              card.name,
-                              style: theme.textTheme.large.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            if (card.title != null && card.title!.isNotEmpty)
-                              Text(
-                                card.title!,
-                                style: theme.textTheme.small.copyWith(color: theme.colorScheme.mutedForeground),
-                              ),
-                            if (card.company != null && card.company!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: Text(
-                                  card.company!,
-                                  style: theme.textTheme.small.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: theme.colorScheme.mutedForeground,
-                      ),
-                    ],
-                  ),
-                ),
+  Widget _buildEmptyState(AppLocalizations l10n) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF2F6),
+                borderRadius: BorderRadius.circular(20),
               ),
+              child: const Icon(Icons.contact_page_outlined, size: 34, color: Color(0xFF6B7280)),
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 18),
+            Text(
+              _searchController.text.isNotEmpty ? l10n.noMatchFound : l10n.startDigitalCardHolder,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _searchController.text.isNotEmpty ? l10n.tryAnotherKeyword : l10n.scanButtonDescription,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280), height: 1.5),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    Widget body;
-    switch (_selectedIndex) {
-      case 0:
-        body = _buildOcrList();
-        break;
-      case 1:
-        body = const CardPage();
-        break;
-      case 2:
-        body = const OcrTestPage();
-        break;
-      default:
-        body = _buildOcrList();
-    }
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        backgroundColor: theme.colorScheme.background,
-        elevation: 0,
-        centerTitle: false,
-        title: _isSearching && _selectedIndex == 0
-            ? ShadInput(
-                controller: _searchController,
-                placeholder: Text(l10n.searchPlaceholder),
-                autofocus: true,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                leading: Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Icon(Icons.search_rounded, size: 18, color: theme.colorScheme.mutedForeground),
-                ),
-                trailing: _searchController.text.isNotEmpty
-                    ? GestureDetector(
-                        onTap: () => _searchController.clear(),
-                        child: Icon(Icons.cancel_rounded, size: 18, color: theme.colorScheme.mutedForeground),
-                      )
-                    : null,
-              )
-            : Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Text(
-                  _selectedIndex == 0 ? l10n.cardManagement : (_selectedIndex == 1 ? l10n.myCards : l10n.systemSettings),
-                  style: theme.textTheme.h3.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-        actions: [
-          if (_selectedIndex == 0)
-            IconButton(
-              icon: Icon(_isSearching ? Icons.close_rounded : Icons.search_rounded),
-              onPressed: () {
-                setState(() {
-                  if (_isSearching) {
-                    _isSearching = false;
-                    _searchController.clear();
-                  } else {
-                    _isSearching = true;
-                  }
-                });
-              },
-            ),
-          const SizedBox(width: 8),
+        title: Text(
+          _selectedIndex == 0 ? l10n.cardManagement : (_selectedIndex == 1 ? l10n.myCards : l10n.settings),
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+        ),
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          _buildOcrList(),
+          const CardPage(showAppBar: false),
+          const OcrTestPage(showAppBar: false),
         ],
       ),
-      body: body,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _selectedIndex == 0
-          ? ShadButton(
-              width: 180,
-              height: 54,
-              onPressed: _showImportOptions,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.document_scanner_rounded, size: 22),
-                  const SizedBox(width: 10),
-                  Text(l10n.importCard, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            )
-          : null,
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
+          color: Colors.white,
           border: Border(
-            top: BorderSide(color: theme.colorScheme.border, width: 0.5),
+            top: BorderSide(color: Color(0xFFE5E7EB)),
           ),
         ),
-        child: BottomNavigationBar(
-          elevation: 0,
-          items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.grid_view_rounded),
-              activeIcon: const Icon(Icons.grid_view_rounded),
-              label: l10n.home,
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildNavItem(
+                  index: 0,
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home,
+                  label: l10n.home,
+                ),
+              ),
+              Expanded(
+                child: _buildNavItem(
+                  index: 1,
+                  icon: Icons.credit_card_outlined,
+                  activeIcon: Icons.credit_card,
+                  label: l10n.cards,
+                ),
+              ),
+              Expanded(
+                child: _buildNavItem(
+                  index: 2,
+                  icon: Icons.settings_outlined,
+                  activeIcon: Icons.settings,
+                  label: l10n.settings,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BusinessCardListTile extends StatelessWidget {
+  const _BusinessCardListTile({required this.card, required this.onTap});
+
+  final BusinessCard card;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: card.imagePath != null && card.imagePath!.isNotEmpty
+                    ? Image.file(File(card.imagePath!), fit: BoxFit.cover)
+                    : const Icon(Icons.person_outline, color: Color(0xFF6B7280)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      card.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    if ((card.title ?? '').isNotEmpty)
+                      Text(
+                        card.title!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+                      ),
+                    if ((card.company ?? '').isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          card.company!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF111827)),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionSheetItem extends StatelessWidget {
+  const _ActionSheetItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEAF2FF),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: const Color(0xFF1677FF)),
             ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.credit_card_rounded),
-              activeIcon: const Icon(Icons.credit_card_rounded),
-              label: l10n.cards,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                ],
+              ),
             ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.settings_rounded),
-              activeIcon: const Icon(Icons.settings_rounded),
-              label: l10n.settings,
-            ),
+            const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF)),
           ],
-          currentIndex: _selectedIndex,
-          backgroundColor: theme.colorScheme.background,
-          selectedItemColor: theme.colorScheme.primary,
-          unselectedItemColor: theme.colorScheme.mutedForeground,
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-          onTap: _onItemTapped,
         ),
       ),
     );

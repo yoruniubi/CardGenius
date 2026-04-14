@@ -2,13 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:business_card_ocr/models/business_card.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
+import 'package:antd_flutter_mobile/index.dart';
 
 class EditorPage extends StatefulWidget {
   final BusinessCard? businessCard;
   final String? recognizedText;
-  final String? imagePath; // New: Pass image path from OCR page
+  final String? imagePath;
 
   const EditorPage({
     super.key,
@@ -33,8 +33,9 @@ class _EditorPageState extends State<EditorPage> {
   final TextEditingController _websiteController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  XFile? _pickedImage; // To store the picked image file
-  final ImagePicker _picker = ImagePicker(); // Image picker instance
+  XFile? _pickedImage;
+  final ImagePicker _picker = ImagePicker();
+  bool _isInitializing = true;
 
   @override
   void initState() {
@@ -43,14 +44,12 @@ class _EditorPageState extends State<EditorPage> {
   }
 
   Future<void> _initializeCardData() async {
-    debugPrint('EditorPage: Initializing data');
     if (widget.businessCard != null) {
       _editingCard = widget.businessCard!;
       if (_editingCard.imagePath != null) {
         _pickedImage = XFile(_editingCard.imagePath!);
       }
     } else if (widget.recognizedText != null && widget.recognizedText!.isNotEmpty) {
-      // Use asynchronous ML Kit entity extraction logic
       _editingCard = await BusinessCard.fromOcrTextAsync(
         widget.recognizedText!,
         imagePath: widget.imagePath,
@@ -59,21 +58,24 @@ class _EditorPageState extends State<EditorPage> {
         _pickedImage = XFile(widget.imagePath!);
       }
     } else {
-      _editingCard = BusinessCard(name: ''); // Default empty card
+      _editingCard = BusinessCard(name: '');
+      if (widget.imagePath != null) {
+        _pickedImage = XFile(widget.imagePath!);
+      }
     }
 
-    if (mounted) {
-      setState(() {
-        _nameController.text = _editingCard.name;
-        _titleController.text = _editingCard.title ?? '';
-        _companyController.text = _editingCard.company ?? '';
-        _phoneController.text = _editingCard.phone ?? '';
-        _emailController.text = _editingCard.email ?? '';
-        _addressController.text = _editingCard.address ?? '';
-        _websiteController.text = _editingCard.website ?? '';
-        _notesController.text = _editingCard.notes ?? '';
-      });
-    }
+    if (!mounted) return;
+    setState(() {
+      _nameController.text = _editingCard.name;
+      _titleController.text = _editingCard.title ?? '';
+      _companyController.text = _editingCard.company ?? '';
+      _phoneController.text = _editingCard.phone ?? '';
+      _emailController.text = _editingCard.email ?? '';
+      _addressController.text = _editingCard.address ?? '';
+      _websiteController.text = _editingCard.website ?? '';
+      _notesController.text = _editingCard.notes ?? '';
+      _isInitializing = false;
+    });
   }
 
   @override
@@ -100,9 +102,7 @@ class _EditorPageState extends State<EditorPage> {
 
   void _saveBusinessCard() {
     final l10n = AppLocalizations.of(context)!;
-    debugPrint('EditorPage: Attempting to save card');
     if (_nameController.text.trim().isEmpty) {
-      debugPrint('Save failed: Name is empty');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.nameCannotBeEmpty),
@@ -112,187 +112,234 @@ class _EditorPageState extends State<EditorPage> {
       return;
     }
 
-    _editingCard.name = _nameController.text;
-    _editingCard.title = _titleController.text.isEmpty ? null : _titleController.text;
-    _editingCard.company = _companyController.text.isEmpty ? null : _companyController.text;
-    _editingCard.phone = _phoneController.text.isEmpty ? null : _phoneController.text;
-    _editingCard.email = _emailController.text.isEmpty ? null : _emailController.text;
-    _editingCard.address = _addressController.text.isEmpty ? null : _addressController.text;
-    _editingCard.website = _websiteController.text.isEmpty ? null : _websiteController.text;
-    _editingCard.notes = _notesController.text.isEmpty ? null : _notesController.text;
+    _editingCard.name = _nameController.text.trim();
+    _editingCard.title = _titleController.text.trim().isEmpty ? null : _titleController.text.trim();
+    _editingCard.company = _companyController.text.trim().isEmpty ? null : _companyController.text.trim();
+    _editingCard.phone = _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim();
+    _editingCard.email = _emailController.text.trim().isEmpty ? null : _emailController.text.trim();
+    _editingCard.address = _addressController.text.trim().isEmpty ? null : _addressController.text.trim();
+    _editingCard.website = _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim();
+    _editingCard.notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
     _editingCard.imagePath = _pickedImage?.path;
-    debugPrint('Save successful: $_editingCard');
     Navigator.pop(context, _editingCard);
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: const Color(0xFFF5F6F8),
       appBar: AppBar(
-        backgroundColor: theme.colorScheme.background,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          l10n.editCardInfo,
-          style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
+        title: Text(l10n.editCardInfo),
+        centerTitle: false,
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: AntdButton(
+            block: true,
+            onTap: _isInitializing ? null : _saveBusinessCard,
+            child: Text(l10n.saveAndReturn),
+          ),
         ),
       ),
-      body: Column(
-        children: [
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Image picker and display
-                  Text(
-                    l10n.originalImage,
-                    style: theme.textTheme.small.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: theme.colorScheme.mutedForeground,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      width: double.infinity,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.muted,
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(
-                          color: theme.colorScheme.border,
-                          width: 1,
+      body: _isInitializing
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              children: [
+                _SectionLabel(title: '来源图像'),
+                const SizedBox(height: 8),
+                _Panel(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          width: double.infinity,
+                          height: 180,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF7F8FA),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE5E7EB)),
+                          ),
+                          child: _pickedImage != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.file(
+                                    File(_pickedImage!.path),
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add_photo_alternate_outlined, size: 32, color: Colors.grey.shade500),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      l10n.clickToChangeImage,
+                                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                                    ),
+                                  ],
+                                ),
                         ),
                       ),
-                      child: _pickedImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12.0),
-                              child: Image.file(
-                                File(_pickedImage!.path),
-                                fit: BoxFit.contain,
-                              ),
-                            )
-                          : Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.add_a_photo_outlined,
-                                    size: 40,
-                                    color: theme.colorScheme.mutedForeground,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    l10n.clickToChangeImage,
-                                    style: theme.textTheme.muted,
-                                  ),
-                                ],
-                              ),
-                            ),
-                    ),
+                      const SizedBox(height: 10),
+                      Text(
+                        '用于核对 OCR 识别结果，点击可重新选择图片。',
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    l10n.detailedInfo,
-                    style: theme.textTheme.large.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+                _SectionLabel(title: '核心信息'),
+                const SizedBox(height: 8),
+                _Panel(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildInputField(label: l10n.name, hint: l10n.pleaseEnterName, controller: _nameController,icon:Icons.person_outline),
+                      const SizedBox(height: 14),
+                      _buildInputField(label: l10n.jobTitle, hint: l10n.pleaseEnterTitle, controller: _titleController,icon:Icons.work_outline),
+                      const SizedBox(height: 14),
+                      _buildInputField(label: l10n.company, hint: l10n.pleaseEnterCompany, controller: _companyController,icon:Icons.apartment_outlined),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildInputField(
-                    label: l10n.name,
-                    placeholder: l10n.pleaseEnterName,
-                    controller: _nameController,
+                ),
+                const SizedBox(height: 24),
+                _SectionLabel(title: '联系方式'),
+                const SizedBox(height: 8),
+                _Panel(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildInputField(label: l10n.phone, hint: l10n.pleaseEnterPhone, controller: _phoneController, icon: Icons.phone_outlined),
+                      const SizedBox(height: 14),
+                      _buildInputField(label: l10n.email, hint: l10n.pleaseEnterEmail, controller: _emailController, icon: Icons.email_outlined),
+                      const SizedBox(height: 14),
+                      _buildInputField(label: l10n.website, hint: l10n.pleaseEnterWebsite, controller: _websiteController, icon: Icons.language_outlined),
+                      const SizedBox(height: 14),
+                      _buildInputField(label: l10n.address, hint: l10n.pleaseEnterAddress, controller: _addressController, maxLines: 2, icon: Icons.location_on_outlined),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  _buildInputField(
-                    label: l10n.jobTitle,
-                    placeholder: l10n.pleaseEnterTitle,
-                    controller: _titleController,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInputField(
-                    label: l10n.company,
-                    placeholder: l10n.pleaseEnterCompany,
-                    controller: _companyController,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInputField(
-                    label: l10n.phone,
-                    placeholder: l10n.pleaseEnterPhone,
-                    controller: _phoneController,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInputField(
-                    label: l10n.email,
-                    placeholder: l10n.pleaseEnterEmail,
-                    controller: _emailController,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInputField(
-                    label: l10n.website,
-                    placeholder: l10n.pleaseEnterWebsite,
-                    controller: _websiteController,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInputField(
-                    label: l10n.address,
-                    placeholder: l10n.pleaseEnterAddress,
-                    controller: _addressController,
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInputField(
+                ),
+                const SizedBox(height: 24),
+                _SectionLabel(title: '备注'),
+                const SizedBox(height: 8),
+                _Panel(
+                  padding: const EdgeInsets.all(16),
+                  child: _buildInputField(
                     label: l10n.notes,
-                    placeholder: l10n.pleaseEnterNotes,
+                    hint: l10n.pleaseEnterNotes,
                     controller: _notesController,
-                    maxLines: 3,
+                    maxLines: 4,
+                    showLabel: false
                   ),
-                  const SizedBox(height: 32),
-                  ShadButton(
-                    width: double.infinity,
-                    onPressed: _saveBusinessCard,
-                    child: Text(l10n.saveAndReturn),
-                  ),
-                  const SizedBox(height: 40),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildInputField({
     required String label,
-    required String placeholder,
+    required String hint,
     required TextEditingController controller,
     int maxLines = 1,
+    bool showLabel = true,
+    IconData? icon
   }) {
-    final theme = ShadTheme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: theme.textTheme.small.copyWith(
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.mutedForeground,
+        if (showLabel) ...[
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF9CA3AF),
+            ),
+          ),
+          const SizedBox(height: 6),
+        ],
+        TextField(
+          controller: controller,
+          maxLines: maxLines,
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            prefixIcon: icon != null ? Icon(icon, color: const Color(0xFF9CA3AF), size: 20) : null,
+            fillColor: const Color(0xFFF9FAFB),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF1677FF)),
+            ),
           ),
         ),
-        const SizedBox(height: 6),
-        ShadInput(
-          controller: controller,
-          placeholder: Text(placeholder),
-          maxLines: maxLines,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        ),
       ],
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF6B7280),
+      ),
+    );
+  }
+}
+
+class _Panel extends StatelessWidget {
+  const _Panel({required this.child, this.padding = const EdgeInsets.symmetric(horizontal: 16)});
+
+  final Widget child;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFF0F1F3)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: padding,
+        child: child,
+      ),
     );
   }
 }

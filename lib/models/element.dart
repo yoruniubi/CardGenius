@@ -4,10 +4,15 @@ import 'package:flutter/material.dart';
 abstract class CardElement {
   double x;
   double y;
-  String type; // 'text' or 'image'
+  String type; // 'text' or 'image' or 'icon'
   String? tag; // Identifier for element purpose, e.g., 'name', 'company'
 
-  CardElement({required this.x, required this.y, required this.type, this.tag});
+  CardElement({
+    required this.x,
+    required this.y,
+    required this.type,
+    this.tag,
+  });
 
   // Factory constructor to create elements from a map
   factory CardElement.fromJson(Map<String, dynamic> json) {
@@ -16,6 +21,8 @@ abstract class CardElement {
       return TextElement.fromJson(json);
     } else if (type == 'image') {
       return ImageElement.fromJson(json);
+    } else if (type == 'icon') {
+      return IconElement.fromJson(json);
     }
     throw ArgumentError('Unknown element type: $type');
   }
@@ -108,6 +115,50 @@ class ImageElement extends CardElement {
       'image_url': imageUrl,
       'width': width,
       'height': height,
+    };
+  }
+}
+
+// Icon element specific properties
+class IconElement extends CardElement {
+  IconData icon;
+  double size;
+  Color color;
+
+  IconElement({
+    required super.x,
+    required super.y,
+    required this.icon,
+    super.tag,
+    this.size = 16.0,
+    this.color = Colors.black54,
+  }) : super(type: 'icon');
+
+  factory IconElement.fromJson(Map<String, dynamic> json) {
+    return IconElement(
+      x: (json['x'] as num).toDouble(),
+      y: (json['y'] as num).toDouble(),
+      tag: json['tag'] as String?,
+      icon: IconData(
+        json['icon_code_point'] as int,
+        fontFamily: json['icon_font_family'] as String? ?? 'MaterialIcons',
+      ),
+      size: (json['size'] as num?)?.toDouble() ?? 16.0,
+      color: Color(json['color'] as int? ?? Colors.black54.value),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'x': x,
+      'y': y,
+      'tag': tag,
+      'icon_code_point': icon.codePoint,
+      'icon_font_family': icon.fontFamily,
+      'size': size,
+      'color': color.value,
     };
   }
 }

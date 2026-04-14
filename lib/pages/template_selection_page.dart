@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:business_card_ocr/models/template.dart';
 import 'package:business_card_ocr/models/element.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:antd_flutter_mobile/index.dart';
 
 class TemplateSelectionPage extends StatefulWidget {
   const TemplateSelectionPage({super.key});
@@ -67,19 +67,16 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final templates = _availableTemplates ?? [];
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: const Color(0xFFF5F6F8),
       appBar: AppBar(
-        backgroundColor: theme.colorScheme.background,
-        elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         title: Text(
           l10n.selectTemplate,
-          style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
         ),
       ),
       body: GridView.builder(
@@ -94,119 +91,135 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
         itemBuilder: (context, index) {
           if (index == templates.length) {
             // Custom upload option
-            return ShadCard(
-              padding: const EdgeInsets.all(0),
-              child: InkWell(
-                onTap: _pickCustomBackground,
-                borderRadius: BorderRadius.circular(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: Container(
-                        color: theme.colorScheme.muted,
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_photo_alternate_outlined,
-                                size: 40,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                l10n.uploadBackground,
-                                style: theme.textTheme.small.copyWith(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
+            return _TemplateTile(
+              onTap: _pickCustomBackground,
+              preview: Container(
+                color: const Color(0xFFF3F4F6),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.add_photo_alternate_outlined,
+                        size: 40,
+                        color: Color(0xFF1677FF),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.uploadBackground,
+                        style: const TextStyle(
+                          color: Color(0xFF1677FF),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.customBackground,
-                            style: theme.textTheme.small.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            l10n.useLocalImage,
-                            style: theme.textTheme.muted.copyWith(fontSize: 10),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
+              title: l10n.customBackground,
+              subtitle: l10n.useLocalImage,
             );
           }
 
           final template = templates[index];
-          return ShadCard(
-            padding: const EdgeInsets.all(0),
-            child: InkWell(
-              onTap: () {
-                Navigator.pop(context, template);
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                        image: template.previewImagePath != null
-                            ? DecorationImage(
-                                image: AssetImage(template.previewImagePath!),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                        color: theme.colorScheme.muted,
-                      ),
-                      child: template.previewImagePath == null
-                          ? Center(
-                              child: Icon(
-                                Icons.image_outlined,
-                                color: theme.colorScheme.mutedForeground,
-                              ),
-                            )
-                          : null,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          template.name,
-                          style: theme.textTheme.small.copyWith(fontWeight: FontWeight.bold),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          l10n.templateCount(template.elements.length),
-                          style: theme.textTheme.muted.copyWith(fontSize: 10),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+          return _TemplateTile(
+            onTap: () => Navigator.pop(context, template),
+            preview: Container(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                image: template.previewImagePath != null
+                    ? DecorationImage(
+                        image: AssetImage(template.previewImagePath!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+                color: const Color(0xFFF3F4F6),
               ),
+              child: template.previewImagePath == null
+                  ? const Center(
+                      child: Icon(
+                        Icons.image_outlined,
+                        color: Color(0xFF9CA3AF),
+                      ),
+                    )
+                  : null,
             ),
+            title: template.name,
+            subtitle: l10n.templateCount(template.elements.length),
           );
         },
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: AntdButton(
+            fill: AntdButtonFill.outline,
+            onTap: _pickCustomBackground,
+            child: Text(l10n.uploadBackground),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TemplateTile extends StatelessWidget {
+  const _TemplateTile({
+    required this.onTap,
+    required this.preview,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final VoidCallback onTap;
+  final Widget preview;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: preview),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

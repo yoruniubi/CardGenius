@@ -473,7 +473,7 @@ abstract class AppLocalizations {
   /// No description provided for @saveAndReturn.
   ///
   /// In en, this message translates to:
-  /// **'Save and Return'**
+  /// **'Save Card'**
   String get saveAndReturn;
 
   /// No description provided for @nameCannotBeEmpty.

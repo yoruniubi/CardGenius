@@ -68,7 +68,7 @@
   "pleaseEnterAddress": "请输入详细地址",
   "notes": "备注",
   "pleaseEnterNotes": "请输入备注信息",
-  "saveAndReturn": "保存并返回",
+  "saveAndReturn": "保存名片",
   "nameCannotBeEmpty": "姓名不能为空",
   "confirmClear": "确认清空",
   "clearConfirmContent": "这将清除当前输入的所有信息和已保存的名片数据，确定吗？",

@@ -68,7 +68,7 @@
   "pleaseEnterAddress": "Please enter address",
   "notes": "Notes",
   "pleaseEnterNotes": "Please enter notes",
-  "saveAndReturn": "Save and Return",
+  "saveAndReturn": "Save Card",
   "nameCannotBeEmpty": "Name cannot be empty",
   "confirmClear": "Confirm Clear",
   "clearConfirmContent": "This will clear all current input and saved card data. Are you sure?",

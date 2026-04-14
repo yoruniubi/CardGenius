@@ -197,7 +197,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pleaseEnterNotes => '请输入备注信息';
 
   @override
-  String get saveAndReturn => '保存并返回';
+  String get saveAndReturn => '保存名片';
 
   @override
   String get nameCannotBeEmpty => '姓名不能为空';
