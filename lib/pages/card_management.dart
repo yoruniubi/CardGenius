@@ -13,6 +13,8 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:business_card_ocr/main.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
+import 'package:business_card_ocr/pages/editor_page.dart';
+import 'package:business_card_ocr/models/business_card.dart';
 
 class CardPage extends StatefulWidget {
   const CardPage({super.key, this.showAppBar = true});
@@ -36,7 +38,11 @@ class _CardPageState extends State<CardPage> {
   late TextEditingController _addressController;
   late TextEditingController _websiteController;
   late TextEditingController _notesController;
-
+  bool _showPhone = true;
+  bool _showEmail = true;
+  bool _showAddress = true;
+  bool _showWebsite = true;
+  bool _showImage = false;
   @override
   void initState() {
     super.initState();
@@ -169,9 +175,8 @@ class _CardPageState extends State<CardPage> {
     super.dispose();
   }
 
-  void _updatePreview() {
-    final l10n = AppLocalizations.of(context);
-    if (l10n == null) return;
+ void _updatePreview() {
+    if (!mounted) return;
 
     setState(() {
       for (final element in _cardElements) {
@@ -187,16 +192,16 @@ class _CardPageState extends State<CardPage> {
               element.content = _companyController.text;
               break;
             case 'phone':
-              element.content = _phoneController.text;
+              element.content = _showPhone ? _phoneController.text : '';
               break;
             case 'email':
-              element.content = _emailController.text;
+              element.content = _showEmail ? _emailController.text : '';
               break;
             case 'address':
-              element.content = _addressController.text;
+              element.content = _showAddress ? _addressController.text : '';
               break;
             case 'website':
-              element.content = _websiteController.text;
+              element.content = _showWebsite ? _websiteController.text : '';
               break;
           }
         }
@@ -282,12 +287,18 @@ class _CardPageState extends State<CardPage> {
         _addressController.text = data['address'] ?? '';
         _websiteController.text = data['website'] ?? '';
         _notesController.text = data['notes'] ?? '';
+        _showPhone = data['showPhone'] as bool? ?? true;
+        _showEmail = data['showEmail'] as bool? ?? true;
+        _showAddress = data['showAddress'] as bool? ?? true;
+        _showWebsite = data['showWebsite'] as bool? ?? true;
+        _showImage = data['showImage'] as bool? ?? false;
 
         if (data['template_id'] != null) {
           _currentTemplate = BusinessCardTemplate(
             id: data['template_id'] as String,
             name: data['template_name'] ?? '已保存模板',
             previewImagePath: data['template_preview_path'] as String?,
+            backgroundColorValue: data['template_background_color_value'] as int?,
             elements: [],
           );
         }
@@ -420,17 +431,94 @@ class _CardPageState extends State<CardPage> {
     }
   }
 
-  void _goToEditPage() {
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(
-        content: Text('下一步这里接入独立编辑页'),
-        behavior: SnackBarBehavior.floating,
+  Future<void> _goToEditPage() async {
+    final currentCard = BusinessCard(
+      name: _nameController.text.trim(),
+      title: _titleController.text.trim().isEmpty ? null : _titleController.text.trim(),
+      company: _companyController.text.trim().isEmpty ? null : _companyController.text.trim(),
+      phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+      email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+      address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+      website: _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim(),
+      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      showPhone: _showPhone,
+      showEmail: _showEmail,
+      showAddress: _showAddress,
+      showWebsite: _showWebsite,
+      showImage: _showImage,
+    );
+
+    final result = await Navigator.push<BusinessCard>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditorPage(
+          businessCard: currentCard,
+        ),
       ),
     );
+
+    if (result == null) return;
+
+    setState(() {
+      _nameController.text = result.name;
+      _titleController.text = result.title ?? '';
+      _companyController.text = result.company ?? '';
+      _phoneController.text = result.phone ?? '';
+      _emailController.text = result.email ?? '';
+      _addressController.text = result.address ?? '';
+      _websiteController.text = result.website ?? '';
+      _notesController.text = result.notes ?? '';
+      _showPhone = result.showPhone;
+      _showEmail = result.showEmail;
+      _showAddress = result.showAddress;
+      _showWebsite = result.showWebsite;
+      _showImage = result.showImage;
+    });
+
+    _updatePreview();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cardData = {
+        'name': _nameController.text,
+        'company': _companyController.text,
+        'title': _titleController.text,
+        'phone': _phoneController.text,
+        'email': _emailController.text,
+        'address': _addressController.text,
+        'website': _websiteController.text,
+        'notes': _notesController.text,
+        'template_id': _currentTemplate?.id,
+        'template_name': _currentTemplate?.name,
+        'template_preview_path': _currentTemplate?.previewImagePath,
+        'elements': _cardElements.map((e) => e.toJson()).toList(),
+        'template_background_color_value': _currentTemplate?.backgroundColorValue,
+        'showPhone': _showPhone,
+        'showEmail': _showEmail,
+        'showAddress': _showAddress,
+        'showWebsite': _showWebsite,
+        'showImage': _showImage,
+      };
+      await prefs.setString('my_business_card', json.encode(cardData));
+    } catch (e) {
+      debugPrint('保存编辑后的电子名片失败: $e');
+    }
   }
+
+  // Widget _buildCardPreviewWidget() {
+  //   DecorationImage? decorationImage;
+  //   if (_currentTemplate?.previewImagePath != null) {
+  //     final path = _currentTemplate!.previewImagePath!;
+  //     if (path.startsWith('assets/')) {
+  //       decorationImage = DecorationImage(
+  //     ),
+  //   );
+  // }
 
   Widget _buildCardPreviewWidget() {
     DecorationImage? decorationImage;
+    Color backgroundColor = Colors.white;
+
     if (_currentTemplate?.previewImagePath != null) {
       final path = _currentTemplate!.previewImagePath!;
       if (path.startsWith('assets/')) {
@@ -444,6 +532,8 @@ class _CardPageState extends State<CardPage> {
           fit: BoxFit.cover,
         );
       }
+    } else if (_currentTemplate?.backgroundColor != null) {
+      backgroundColor = _currentTemplate!.backgroundColor!;
     }
 
     return Screenshot(
@@ -453,7 +543,7 @@ class _CardPageState extends State<CardPage> {
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: const Color(0xFFE5E7EB)),
             boxShadow: const [
@@ -490,10 +580,10 @@ class _CardPageState extends State<CardPage> {
                 );
               } else if (element is IconElement) {
                 final shouldHide = switch (element.tag) {
-                  'phone_icon' => _phoneController.text.trim().isEmpty,
-                  'email_icon' => _emailController.text.trim().isEmpty,
-                  'address_icon' => _addressController.text.trim().isEmpty,
-                  'website_icon' => _websiteController.text.trim().isEmpty,
+                  'phone_icon' => !_showPhone || _phoneController.text.trim().isEmpty,
+                  'email_icon' => !_showEmail || _emailController.text.trim().isEmpty,
+                  'address_icon' => !_showAddress || _addressController.text.trim().isEmpty,
+                  'website_icon' => !_showWebsite || _websiteController.text.trim().isEmpty,
                   _ => false,
                 };
                 if (shouldHide) return const SizedBox.shrink();
@@ -534,31 +624,30 @@ class _CardPageState extends State<CardPage> {
   }) {
     return Expanded(
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-          ),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   color: const Color(0xFFEAF2FF),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: const Color(0xFF1677FF), size: 22),
+                child: Icon(
+                  icon,
+                  color: const Color(0xFF1677FF),
+                  size: 32,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF111827),
                 ),

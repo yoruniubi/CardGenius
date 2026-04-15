@@ -37,6 +37,13 @@ class _EditorPageState extends State<EditorPage> {
   final ImagePicker _picker = ImagePicker();
   bool _isInitializing = true;
 
+  // 展示内容开关
+  bool _showPhone = true;
+  bool _showEmail = true;
+  bool _showAddress = true;
+  bool _showWebsite = true;
+  bool _showImage = false;
+
   @override
   void initState() {
     super.initState();
@@ -46,7 +53,7 @@ class _EditorPageState extends State<EditorPage> {
   Future<void> _initializeCardData() async {
     if (widget.businessCard != null) {
       _editingCard = widget.businessCard!;
-      if (_editingCard.imagePath != null) {
+      if (_editingCard.imagePath != null && _editingCard.imagePath!.isNotEmpty) {
         _pickedImage = XFile(_editingCard.imagePath!);
       }
     } else if (widget.recognizedText != null && widget.recognizedText!.isNotEmpty) {
@@ -65,6 +72,7 @@ class _EditorPageState extends State<EditorPage> {
     }
 
     if (!mounted) return;
+
     setState(() {
       _nameController.text = _editingCard.name;
       _titleController.text = _editingCard.title ?? '';
@@ -74,6 +82,13 @@ class _EditorPageState extends State<EditorPage> {
       _addressController.text = _editingCard.address ?? '';
       _websiteController.text = _editingCard.website ?? '';
       _notesController.text = _editingCard.notes ?? '';
+
+      _showPhone = _editingCard.showPhone;
+      _showEmail = _editingCard.showEmail;
+      _showAddress = _editingCard.showAddress;
+      _showWebsite = _editingCard.showWebsite;
+      _showImage = _editingCard.showImage;
+
       _isInitializing = false;
     });
   }
@@ -96,12 +111,14 @@ class _EditorPageState extends State<EditorPage> {
     if (image != null) {
       setState(() {
         _pickedImage = image;
+        _showImage = true;
       });
     }
   }
 
   void _saveBusinessCard() {
     final l10n = AppLocalizations.of(context)!;
+
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -113,14 +130,28 @@ class _EditorPageState extends State<EditorPage> {
     }
 
     _editingCard.name = _nameController.text.trim();
-    _editingCard.title = _titleController.text.trim().isEmpty ? null : _titleController.text.trim();
-    _editingCard.company = _companyController.text.trim().isEmpty ? null : _companyController.text.trim();
-    _editingCard.phone = _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim();
-    _editingCard.email = _emailController.text.trim().isEmpty ? null : _emailController.text.trim();
-    _editingCard.address = _addressController.text.trim().isEmpty ? null : _addressController.text.trim();
-    _editingCard.website = _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim();
-    _editingCard.notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
+    _editingCard.title =
+        _titleController.text.trim().isEmpty ? null : _titleController.text.trim();
+    _editingCard.company =
+        _companyController.text.trim().isEmpty ? null : _companyController.text.trim();
+    _editingCard.phone =
+        _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim();
+    _editingCard.email =
+        _emailController.text.trim().isEmpty ? null : _emailController.text.trim();
+    _editingCard.address =
+        _addressController.text.trim().isEmpty ? null : _addressController.text.trim();
+    _editingCard.website =
+        _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim();
+    _editingCard.notes =
+        _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
     _editingCard.imagePath = _pickedImage?.path;
+
+    _editingCard.showPhone = _showPhone;
+    _editingCard.showEmail = _showEmail;
+    _editingCard.showAddress = _showAddress;
+    _editingCard.showWebsite = _showWebsite;
+    _editingCard.showImage = _showImage;
+
     Navigator.pop(context, _editingCard);
   }
 
@@ -179,11 +210,18 @@ class _EditorPageState extends State<EditorPage> {
                               : Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.add_photo_alternate_outlined, size: 32, color: Colors.grey.shade500),
+                                    Icon(
+                                      Icons.add_photo_alternate_outlined,
+                                      size: 32,
+                                      color: Colors.grey.shade500,
+                                    ),
                                     const SizedBox(height: 8),
                                     Text(
                                       l10n.clickToChangeImage,
-                                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey.shade600,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -192,11 +230,15 @@ class _EditorPageState extends State<EditorPage> {
                       const SizedBox(height: 10),
                       Text(
                         '用于核对 OCR 识别结果，点击可重新选择图片。',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 24),
                 _SectionLabel(title: '核心信息'),
                 const SizedBox(height: 8),
@@ -204,14 +246,30 @@ class _EditorPageState extends State<EditorPage> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _buildInputField(label: l10n.name, hint: l10n.pleaseEnterName, controller: _nameController,icon:Icons.person_outline),
+                      _buildInputField(
+                        label: l10n.name,
+                        hint: l10n.pleaseEnterName,
+                        controller: _nameController,
+                        icon: Icons.person_outline,
+                      ),
                       const SizedBox(height: 14),
-                      _buildInputField(label: l10n.jobTitle, hint: l10n.pleaseEnterTitle, controller: _titleController,icon:Icons.work_outline),
+                      _buildInputField(
+                        label: l10n.jobTitle,
+                        hint: l10n.pleaseEnterTitle,
+                        controller: _titleController,
+                        icon: Icons.work_outline,
+                      ),
                       const SizedBox(height: 14),
-                      _buildInputField(label: l10n.company, hint: l10n.pleaseEnterCompany, controller: _companyController,icon:Icons.apartment_outlined),
+                      _buildInputField(
+                        label: l10n.company,
+                        hint: l10n.pleaseEnterCompany,
+                        controller: _companyController,
+                        icon: Icons.apartment_outlined,
+                      ),
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 24),
                 _SectionLabel(title: '联系方式'),
                 const SizedBox(height: 8),
@@ -219,16 +277,92 @@ class _EditorPageState extends State<EditorPage> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _buildInputField(label: l10n.phone, hint: l10n.pleaseEnterPhone, controller: _phoneController, icon: Icons.phone_outlined),
+                      _buildInputField(
+                        label: l10n.phone,
+                        hint: l10n.pleaseEnterPhone,
+                        controller: _phoneController,
+                        icon: Icons.phone_outlined,
+                      ),
                       const SizedBox(height: 14),
-                      _buildInputField(label: l10n.email, hint: l10n.pleaseEnterEmail, controller: _emailController, icon: Icons.email_outlined),
+                      _buildInputField(
+                        label: l10n.email,
+                        hint: l10n.pleaseEnterEmail,
+                        controller: _emailController,
+                        icon: Icons.email_outlined,
+                      ),
                       const SizedBox(height: 14),
-                      _buildInputField(label: l10n.website, hint: l10n.pleaseEnterWebsite, controller: _websiteController, icon: Icons.language_outlined),
+                      _buildInputField(
+                        label: l10n.website,
+                        hint: l10n.pleaseEnterWebsite,
+                        controller: _websiteController,
+                        icon: Icons.language_outlined,
+                      ),
                       const SizedBox(height: 14),
-                      _buildInputField(label: l10n.address, hint: l10n.pleaseEnterAddress, controller: _addressController, maxLines: 2, icon: Icons.location_on_outlined),
+                      _buildInputField(
+                        label: l10n.address,
+                        hint: l10n.pleaseEnterAddress,
+                        controller: _addressController,
+                        maxLines: 2,
+                        icon: Icons.location_on_outlined,
+                      ),
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 24),
+                _SectionLabel(title: '展示内容'),
+                const SizedBox(height: 8),
+                _Panel(
+                  child: Column(
+                    children: [
+                      _buildSwitchTile(
+                        title: '显示电话',
+                        value: _showPhone,
+                        onChanged: (value) {
+                          setState(() => _showPhone = value);
+                        },
+                        icon: Icons.phone_outlined,
+                      ),
+                      const Divider(height: 1),
+                      _buildSwitchTile(
+                        title: '显示邮箱',
+                        value: _showEmail,
+                        onChanged: (value) {
+                          setState(() => _showEmail = value);
+                        },
+                        icon: Icons.email_outlined,
+                      ),
+                      const Divider(height: 1),
+                      _buildSwitchTile(
+                        title: '显示地址',
+                        value: _showAddress,
+                        onChanged: (value) {
+                          setState(() => _showAddress = value);
+                        },
+                        icon: Icons.location_on_outlined,
+                      ),
+                      const Divider(height: 1),
+                      _buildSwitchTile(
+                        title: '显示网站',
+                        value: _showWebsite,
+                        onChanged: (value) {
+                          setState(() => _showWebsite = value);
+                        },
+                        icon: Icons.language_outlined,
+                      ),
+                      const Divider(height: 1),
+                      _buildSwitchTile(
+                        title: '显示头像',
+                        value: _showImage,
+                        onChanged: (value) {
+                          setState(() => _showImage = value);
+                        },
+                        icon: Icons.account_circle_outlined,
+                      ),
+                    ],
+                  ),
+                ),
+
                 const SizedBox(height: 24),
                 _SectionLabel(title: '备注'),
                 const SizedBox(height: 8),
@@ -239,7 +373,7 @@ class _EditorPageState extends State<EditorPage> {
                     hint: l10n.pleaseEnterNotes,
                     controller: _notesController,
                     maxLines: 4,
-                    showLabel: false
+                    showLabel: false,
                   ),
                 ),
               ],
@@ -253,7 +387,7 @@ class _EditorPageState extends State<EditorPage> {
     required TextEditingController controller,
     int maxLines = 1,
     bool showLabel = true,
-    IconData? icon
+    IconData? icon,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,9 +409,18 @@ class _EditorPageState extends State<EditorPage> {
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
-            prefixIcon: icon != null ? Icon(icon, color: const Color(0xFF9CA3AF), size: 20) : null,
+            prefixIcon: icon != null
+                ? Icon(
+                    icon,
+                    color: const Color(0xFF9CA3AF),
+                    size: 20,
+                  )
+                : null,
             fillColor: const Color(0xFFF9FAFB),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -293,6 +436,50 @@ class _EditorPageState extends State<EditorPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required String title,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required IconData icon,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: const Color(0xFF6B7280),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF111827),
+              ),
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF1677FF),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -316,7 +503,10 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _Panel extends StatelessWidget {
-  const _Panel({required this.child, this.padding = const EdgeInsets.symmetric(horizontal: 16)});
+  const _Panel({
+    required this.child,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16),
+  });
 
   final Widget child;
   final EdgeInsets padding;
