@@ -5,6 +5,7 @@ import 'package:antd_flutter_mobile/index.dart';
 import 'package:business_card_ocr/models/template.dart';
 import 'package:business_card_ocr/models/element.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TemplateSelectionPage extends StatefulWidget {
   const TemplateSelectionPage({super.key});
@@ -17,6 +18,10 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
   String _selectedBackgroundId = 'bg_asset_1';
   String _selectedLayoutId = 'layout_left';
   String? _customBackgroundPath;
+
+  static const String _bgKey = 'template_selected_background_id';
+  static const String _layoutKey = 'template_selected_layout_id';
+  static const String _customBgKey = 'template_custom_background_path';
 
   final List<_BackgroundOption> _backgroundOptions = [
     _BackgroundOption(
@@ -69,13 +74,47 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     ),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _restoreSelection();
+  }
+
+  Future<void> _restoreSelection() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final savedBg = prefs.getString(_bgKey);
+    final savedLayout = prefs.getString(_layoutKey);
+    final savedCustomBg = prefs.getString(_customBgKey);
+
+    if (!mounted) return;
+
+    setState(() {
+      if (savedBg != null && savedBg.isNotEmpty) {
+        _selectedBackgroundId = savedBg;
+      }
+      if (savedLayout != null && savedLayout.isNotEmpty) {
+        _selectedLayoutId = savedLayout;
+      }
+      if (savedCustomBg != null && savedCustomBg.isNotEmpty) {
+        _customBackgroundPath = savedCustomBg;
+      }
+    });
+  }
+
   Future<void> _pickCustomBackground() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null && result.files.single.path != null) {
+      final path = result.files.single.path!;
+
       setState(() {
-        _customBackgroundPath = result.files.single.path;
+        _customBackgroundPath = path;
         _selectedBackgroundId = 'bg_custom';
       });
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_customBgKey, path);
+      await prefs.setString(_bgKey, 'bg_custom');
     }
   }
 
@@ -95,78 +134,83 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     switch (layoutId) {
       case 'layout_center':
         return [
+          ImageElement(
+            tag: 'avatar',
+            x: 122,
+            y: 16,
+            imageUrl: '',
+            width: 52,
+            height: 52,
+          ),
           TextElement(
-            x: 102,
-            y: 24,
+            x: 108,
+            y: 74,
             content: l10n.name,
             tag: 'name',
-            fontSize: 24,
+            fontSize: 22,
             isBold: true,
             color: primaryTextColor,
           ),
           TextElement(
-            x: 92,
-            y: 54,
+            x: 96,
+            y: 102,
             content: l10n.jobTitle,
             tag: 'title',
             fontSize: 13,
             color: secondaryTextColor,
           ),
           TextElement(
-            x: 86,
-            y: 76,
+            x: 92,
+            y: 122,
             content: l10n.company,
             tag: 'company',
             fontSize: 15,
             isBold: true,
             color: primaryTextColor,
           ),
-
           IconElement(
             tag: 'phone_icon',
             icon: Icons.phone_outlined,
-            x: 54,
-            y: 112,
+            x: 52,
+            y: 150,
             size: 15,
             color: helperTextColor,
           ),
           TextElement(
-            x: 76,
-            y: 110,
+            x: 74,
+            y: 148,
             content: '123-4567-8901',
             tag: 'phone',
             fontSize: 12,
             color: secondaryTextColor,
           ),
-
           IconElement(
             tag: 'email_icon',
             icon: Icons.email_outlined,
-            x: 54,
-            y: 132,
+            x: 52,
+            y: 170,
             size: 15,
             color: helperTextColor,
           ),
           TextElement(
-            x: 76,
-            y: 130,
+            x: 74,
+            y: 168,
             content: 'example@mail.com',
             tag: 'email',
             fontSize: 12,
             color: secondaryTextColor,
           ),
-
           IconElement(
             tag: 'website_icon',
             icon: Icons.language_outlined,
-            x: 54,
-            y: 152,
+            x: 52,
+            y: 190,
             size: 15,
             color: helperTextColor,
           ),
           TextElement(
-            x: 76,
-            y: 150,
+            x: 74,
+            y: 188,
             content: 'www.example.com',
             tag: 'website',
             fontSize: 11,
@@ -202,7 +246,6 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             isBold: true,
             color: primaryTextColor,
           ),
-
           IconElement(
             tag: 'phone_icon',
             icon: Icons.phone_outlined,
@@ -219,7 +262,6 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             fontSize: 12,
             color: secondaryTextColor,
           ),
-
           IconElement(
             tag: 'email_icon',
             icon: Icons.email_outlined,
@@ -236,7 +278,6 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             fontSize: 12,
             color: secondaryTextColor,
           ),
-
           IconElement(
             tag: 'website_icon',
             icon: Icons.language_outlined,
@@ -253,14 +294,13 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             fontSize: 11,
             color: accentTextColor,
           ),
-
-          // 右侧图片区占位
           ImageElement(
-            x: 220,
-            y: 28,
-            imageUrl: 'assets/avatar_placeholder.png',
-            width: 76,
-            height: 76,
+            tag: 'avatar',
+            x: 214,
+            y: 26,
+            imageUrl: '',
+            width: 82,
+            height: 82,
           ),
         ];
 
@@ -293,7 +333,6 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             isBold: true,
             color: primaryTextColor,
           ),
-
           IconElement(
             tag: 'phone_icon',
             icon: Icons.phone_outlined,
@@ -310,7 +349,6 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             fontSize: 12,
             color: secondaryTextColor,
           ),
-
           IconElement(
             tag: 'email_icon',
             icon: Icons.email_outlined,
@@ -327,7 +365,6 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             fontSize: 12,
             color: secondaryTextColor,
           ),
-
           IconElement(
             tag: 'address_icon',
             icon: Icons.location_on_outlined,
@@ -344,7 +381,6 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             fontSize: 11,
             color: helperTextColor,
           ),
-
           IconElement(
             tag: 'website_icon',
             icon: Icons.language_outlined,
@@ -361,11 +397,19 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             fontSize: 11,
             color: accentTextColor,
           ),
+          ImageElement(
+            tag: 'avatar',
+            x: 218,
+            y: 20,
+            imageUrl: '',
+            width: 66,
+            height: 66,
+          ),
         ];
     }
   }
 
-  void _applyTemplate() {
+  Future<void> _applyTemplate() async {
     final l10n = AppLocalizations.of(context)!;
 
     final selectedBg = _selectedBackgroundId == 'bg_custom'
@@ -378,7 +422,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
 
     final bool useLightText =
         selectedBg.color != null &&
-        selectedBg.color!.computeLuminance() < 0.4;
+            selectedBg.color!.computeLuminance() < 0.4;
 
     final template = BusinessCardTemplate(
       id: '${selectedBg.id}_${_selectedLayoutId}',
@@ -389,6 +433,14 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
       elements: _buildLayout(l10n, _selectedLayoutId, useLightText),
     );
 
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_bgKey, _selectedBackgroundId);
+    await prefs.setString(_layoutKey, _selectedLayoutId);
+    if (_customBackgroundPath != null && _customBackgroundPath!.isNotEmpty) {
+      await prefs.setString(_customBgKey, _customBackgroundPath!);
+    }
+
+    if (!mounted) return;
     Navigator.pop(context, template);
   }
 
@@ -429,12 +481,17 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     final bool selected = _selectedBackgroundId == option.id;
 
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         setState(() {
           _selectedBackgroundId = option.id;
         });
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_bgKey, option.id);
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
@@ -442,6 +499,15 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             width: selected ? 2 : 1,
           ),
           color: Colors.white,
+          boxShadow: selected
+              ? const [
+                  BoxShadow(
+                    color: Color(0x141677FF),
+                    blurRadius: 14,
+                    offset: Offset(0, 4),
+                  ),
+                ]
+              : const [],
         ),
         child: Column(
           children: [
@@ -469,73 +535,257 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     );
   }
 
+  Widget _buildMiniLayoutPreview(_LayoutOption option, bool selected) {
+    return Container(
+      width: 92,
+      height: 58,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: selected ? const Color(0xFF1677FF) : const Color(0xFFE5E7EB),
+        ),
+      ),
+      child: Stack(
+        children: [
+          if (option.id == 'layout_left') ...[
+            Positioned(
+              left: 8,
+              top: 8,
+              child: Container(width: 26, height: 5, color: const Color(0xFF111827)),
+            ),
+            Positioned(
+              left: 8,
+              top: 18,
+              child: Container(width: 20, height: 4, color: const Color(0xFF6B7280)),
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD1D5DB),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 8,
+              bottom: 18,
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF9CA3AF),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 18,
+              bottom: 18,
+              child: Container(width: 32, height: 4, color: const Color(0xFF6B7280)),
+            ),
+            Positioned(
+              left: 8,
+              bottom: 8,
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF9CA3AF),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 18,
+              bottom: 8,
+              child: Container(width: 38, height: 4, color: const Color(0xFF6B7280)),
+            ),
+          ],
+          if (option.id == 'layout_center') ...[
+            Positioned(
+              left: 38,
+              top: 8,
+              child: Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD1D5DB),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 28,
+              top: 28,
+              child: Container(width: 34, height: 5, color: const Color(0xFF111827)),
+            ),
+            Positioned(
+              left: 32,
+              top: 38,
+              child: Container(width: 26, height: 4, color: const Color(0xFF6B7280)),
+            ),
+            Positioned(
+              left: 18,
+              bottom: 10,
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF9CA3AF),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 28,
+              bottom: 11,
+              child: Container(width: 42, height: 4, color: const Color(0xFF6B7280)),
+            ),
+          ],
+          if (option.id == 'layout_split') ...[
+            Positioned(
+              left: 8,
+              top: 8,
+              child: Container(width: 22, height: 5, color: const Color(0xFF111827)),
+            ),
+            Positioned(
+              left: 8,
+              top: 18,
+              child: Container(width: 18, height: 4, color: const Color(0xFF6B7280)),
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD1D5DB),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 8,
+              bottom: 18,
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF9CA3AF),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 18,
+              bottom: 18,
+              child: Container(width: 26, height: 4, color: const Color(0xFF6B7280)),
+            ),
+            Positioned(
+              left: 8,
+              bottom: 8,
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF9CA3AF),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 18,
+              bottom: 8,
+              child: Container(width: 30, height: 4, color: const Color(0xFF6B7280)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildLayoutItem(_LayoutOption option) {
     final bool selected = _selectedLayoutId == option.id;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedLayoutId = option.id;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: selected ? const Color(0xFF1677FF) : const Color(0xFFE5E7EB),
-            width: selected ? 2 : 1,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      child: GestureDetector(
+        onTap: () async {
+          setState(() {
+            _selectedLayoutId = option.id;
+          });
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(_layoutKey, option.id);
+        },
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFFF4F8FF) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? const Color(0xFF1677FF) : const Color(0xFFE5E7EB),
+              width: selected ? 2 : 1,
+            ),
+            boxShadow: selected
+                ? const [
+                    BoxShadow(
+                      color: Color(0x141677FF),
+                      blurRadius: 14,
+                      offset: Offset(0, 4),
+                    ),
+                  ]
+                : const [],
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: selected
-                    ? const Color(0xFFEAF2FF)
-                    : const Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                option.id == 'layout_left'
-                    ? Icons.view_agenda_outlined
-                    : option.id == 'layout_center'
-                        ? Icons.align_horizontal_center_outlined
-                        : Icons.dashboard_outlined,
-                color: selected
-                    ? const Color(0xFF1677FF)
-                    : const Color(0xFF6B7280),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    option.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
+          child: Row(
+            children: [
+              _buildMiniLayoutPreview(option, selected),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            option.name,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF111827),
+                            ),
+                          ),
+                        ),
+                        if (selected)
+                          const Icon(
+                            Icons.check_circle,
+                            color: Color(0xFF1677FF),
+                            size: 18,
+                          ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    option.description,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6B7280),
-                      height: 1.4,
+                    const SizedBox(height: 6),
+                    Text(
+                      option.description,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF6B7280),
+                        height: 1.4,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -586,7 +836,9 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
               ..._backgroundOptions.map(_buildBackgroundItem),
               GestureDetector(
                 onTap: _pickCustomBackground,
-                child: Container(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
@@ -596,6 +848,15 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                           : const Color(0xFFE5E7EB),
                       width: _selectedBackgroundId == 'bg_custom' ? 2 : 1,
                     ),
+                    boxShadow: _selectedBackgroundId == 'bg_custom'
+                        ? const [
+                            BoxShadow(
+                              color: Color(0x141677FF),
+                              blurRadius: 14,
+                              offset: Offset(0, 4),
+                            ),
+                          ]
+                        : const [],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

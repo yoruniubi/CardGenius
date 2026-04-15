@@ -13,8 +13,9 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:business_card_ocr/main.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
-import 'package:business_card_ocr/pages/editor_page.dart';
+// import 'package:business_card_ocr/pages/editor_page.dart';
 import 'package:business_card_ocr/models/business_card.dart';
+import 'package:business_card_ocr/pages/card_editor_page.dart';
 
 class CardPage extends StatefulWidget {
   const CardPage({super.key, this.showAppBar = true});
@@ -43,6 +44,7 @@ class _CardPageState extends State<CardPage> {
   bool _showAddress = true;
   bool _showWebsite = true;
   bool _showImage = false;
+  String? _editingImagePath;
   @override
   void initState() {
     super.initState();
@@ -158,6 +160,14 @@ class _CardPageState extends State<CardPage> {
         y: 166,
         size: 16,
         color: const Color(0xFF6B7280),
+      ),
+      ImageElement(
+        tag: 'avatar',
+        x: 218,
+        y: 20,
+        imageUrl: '',
+        width: 66,
+        height: 66,
       ),
     ];
   }
@@ -287,6 +297,7 @@ class _CardPageState extends State<CardPage> {
         _addressController.text = data['address'] ?? '';
         _websiteController.text = data['website'] ?? '';
         _notesController.text = data['notes'] ?? '';
+        _editingImagePath = data['imagePath'] as String?;
         _showPhone = data['showPhone'] as bool? ?? true;
         _showEmail = data['showEmail'] as bool? ?? true;
         _showAddress = data['showAddress'] as bool? ?? true;
@@ -441,6 +452,7 @@ class _CardPageState extends State<CardPage> {
       address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
       website: _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim(),
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      imagePath: _editingImagePath,
       showPhone: _showPhone,
       showEmail: _showEmail,
       showAddress: _showAddress,
@@ -448,13 +460,10 @@ class _CardPageState extends State<CardPage> {
       showImage: _showImage,
     );
 
-    final result = await Navigator.push<BusinessCard>(
+    final result = await CardEditorPage.open(
       context,
-      MaterialPageRoute(
-        builder: (context) => EditorPage(
-          businessCard: currentCard,
-        ),
-      ),
+      card: currentCard,
+      template: _currentTemplate,
     );
 
     if (result == null) return;
@@ -473,6 +482,7 @@ class _CardPageState extends State<CardPage> {
       _showAddress = result.showAddress;
       _showWebsite = result.showWebsite;
       _showImage = result.showImage;
+      _editingImagePath = result.imagePath;
     });
 
     _updatePreview();
@@ -498,6 +508,7 @@ class _CardPageState extends State<CardPage> {
         'showAddress': _showAddress,
         'showWebsite': _showWebsite,
         'showImage': _showImage,
+        'imagePath': _editingImagePath,
       };
       await prefs.setString('my_business_card', json.encode(cardData));
     } catch (e) {
@@ -598,14 +609,58 @@ class _CardPageState extends State<CardPage> {
                   ),
                 );
               } else if (element is ImageElement) {
+                if (element.tag == 'avatar') {
+                  if (!_showImage || (_editingImagePath ?? '').isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Positioned(
+                    left: element.x,
+                    top: element.y,
+                    child: Container(
+                      width: element.width,
+                      height: element.height,
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0x14000000),
+                          width: 1,
+                        ),
+                      ),
+                      child: Image.file(
+                        File(_editingImagePath!),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                }
+
+                if (element.imageUrl.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                if (element.imageUrl.startsWith('assets/')) {
+                  return Positioned(
+                    left: element.x,
+                    top: element.y,
+                    child: Image.asset(
+                      element.imageUrl,
+                      width: element.width,
+                      height: element.height,
+                      fit: BoxFit.contain,
+                    ),
+                  );
+                }
+
                 return Positioned(
                   left: element.x,
                   top: element.y,
-                  child: Image.asset(
-                    element.imageUrl,
+                  child: Image.file(
+                    File(element.imageUrl),
                     width: element.width,
                     height: element.height,
-                    fit: BoxFit.contain,
+                    fit: BoxFit.cover,
                   ),
                 );
               }

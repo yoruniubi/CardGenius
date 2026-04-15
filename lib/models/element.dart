@@ -92,6 +92,7 @@ class ImageElement extends CardElement {
     required super.x,
     required super.y,
     required this.imageUrl,
+    super.tag,
     this.width = 100.0,
     this.height = 100.0,
   }) : super(type: 'image');
@@ -100,6 +101,7 @@ class ImageElement extends CardElement {
     return ImageElement(
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
+      tag: json['tag'] as String?,
       imageUrl: json['image_url'] as String,
       width: (json['width'] as num?)?.toDouble() ?? 100.0,
       height: (json['height'] as num?)?.toDouble() ?? 100.0,
@@ -112,6 +114,7 @@ class ImageElement extends CardElement {
       'type': type,
       'x': x,
       'y': y,
+      'tag': tag,
       'image_url': imageUrl,
       'width': width,
       'height': height,

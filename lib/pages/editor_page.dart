@@ -309,59 +309,59 @@ class _EditorPageState extends State<EditorPage> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
-                _SectionLabel(title: '展示内容'),
-                const SizedBox(height: 8),
-                _Panel(
-                  child: Column(
-                    children: [
-                      _buildSwitchTile(
-                        title: '显示电话',
-                        value: _showPhone,
-                        onChanged: (value) {
-                          setState(() => _showPhone = value);
-                        },
-                        icon: Icons.phone_outlined,
-                      ),
-                      const Divider(height: 1),
-                      _buildSwitchTile(
-                        title: '显示邮箱',
-                        value: _showEmail,
-                        onChanged: (value) {
-                          setState(() => _showEmail = value);
-                        },
-                        icon: Icons.email_outlined,
-                      ),
-                      const Divider(height: 1),
-                      _buildSwitchTile(
-                        title: '显示地址',
-                        value: _showAddress,
-                        onChanged: (value) {
-                          setState(() => _showAddress = value);
-                        },
-                        icon: Icons.location_on_outlined,
-                      ),
-                      const Divider(height: 1),
-                      _buildSwitchTile(
-                        title: '显示网站',
-                        value: _showWebsite,
-                        onChanged: (value) {
-                          setState(() => _showWebsite = value);
-                        },
-                        icon: Icons.language_outlined,
-                      ),
-                      const Divider(height: 1),
-                      _buildSwitchTile(
-                        title: '显示头像',
-                        value: _showImage,
-                        onChanged: (value) {
-                          setState(() => _showImage = value);
-                        },
-                        icon: Icons.account_circle_outlined,
-                      ),
-                    ],
-                  ),
-                ),
+                // const SizedBox(height: 24),
+                // _SectionLabel(title: '展示内容'),
+                // const SizedBox(height: 8),
+                // _Panel(
+                //   child: Column(
+                //     children: [
+                //       _buildSwitchTile(
+                //         title: '显示电话',
+                //         value: _showPhone,
+                //         onChanged: (value) {
+                //           setState(() => _showPhone = value);
+                //         },
+                //         icon: Icons.phone_outlined,
+                //       ),
+                //       const Divider(height: 1),
+                //       _buildSwitchTile(
+                //         title: '显示邮箱',
+                //         value: _showEmail,
+                //         onChanged: (value) {
+                //           setState(() => _showEmail = value);
+                //         },
+                //         icon: Icons.email_outlined,
+                //       ),
+                //       const Divider(height: 1),
+                //       _buildSwitchTile(
+                //         title: '显示地址',
+                //         value: _showAddress,
+                //         onChanged: (value) {
+                //           setState(() => _showAddress = value);
+                //         },
+                //         icon: Icons.location_on_outlined,
+                //       ),
+                //       const Divider(height: 1),
+                //       _buildSwitchTile(
+                //         title: '显示网站',
+                //         value: _showWebsite,
+                //         onChanged: (value) {
+                //           setState(() => _showWebsite = value);
+                //         },
+                //         icon: Icons.language_outlined,
+                //       ),
+                //       const Divider(height: 1),
+                //       _buildSwitchTile(
+                //         title: '显示头像',
+                //         value: _showImage,
+                //         onChanged: (value) {
+                //           setState(() => _showImage = value);
+                //         },
+                //         icon: Icons.account_circle_outlined,
+                //       ),
+                //     ],
+                //   ),
+                // ),
 
                 const SizedBox(height: 24),
                 _SectionLabel(title: '备注'),
@@ -439,49 +439,49 @@ class _EditorPageState extends State<EditorPage> {
     );
   }
 
-  Widget _buildSwitchTile({
-    required String title,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    required IconData icon,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-              size: 18,
-              color: const Color(0xFF6B7280),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF111827),
-              ),
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: const Color(0xFF1677FF),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildSwitchTile({
+  //   required String title,
+  //   required bool value,
+  //   required ValueChanged<bool> onChanged,
+  //   required IconData icon,
+  // }) {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+  //     child: Row(
+  //       children: [
+  //         Container(
+  //           width: 34,
+  //           height: 34,
+  //           decoration: BoxDecoration(
+  //             color: const Color(0xFFF3F4F6),
+  //             borderRadius: BorderRadius.circular(10),
+  //           ),
+  //           child: Icon(
+  //             icon,
+  //             size: 18,
+  //             color: const Color(0xFF6B7280),
+  //           ),
+  //         ),
+  //         const SizedBox(width: 10),
+  //         Expanded(
+  //           child: Text(
+  //             title,
+  //             style: const TextStyle(
+  //               fontSize: 15,
+  //               fontWeight: FontWeight.w600,
+  //               color: Color(0xFF111827),
+  //             ),
+  //           ),
+  //         ),
+  //         Switch(
+  //           value: value,
+  //           onChanged: onChanged,
+  //           activeColor: const Color(0xFF1677FF),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }
 
 class _SectionLabel extends StatelessWidget {
