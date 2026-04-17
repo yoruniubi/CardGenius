@@ -47,5 +47,16 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>我们需要使用您的相机来扫描文档。</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>cardgenius.import</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>cardgenius</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

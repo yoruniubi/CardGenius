@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,6 +9,7 @@ import 'package:cunning_document_scanner/cunning_document_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:app_links/app_links.dart';
 import 'package:business_card_ocr/models/business_card.dart';
 import 'package:business_card_ocr/pages/editor_page.dart';
 import 'package:business_card_ocr/pages/card_management.dart';
@@ -16,6 +18,7 @@ import 'package:business_card_ocr/providers/locale_provider.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
 import 'package:antd_flutter_mobile/index.dart';
 import 'package:business_card_ocr/services/ocr_service.dart';
+import 'package:business_card_ocr/services/share_link_service.dart';
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 void main() {
@@ -104,6 +107,9 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   bool isGalleryImportAllowed = true;
   List<String> scannedImagesPath = [];
+  AppLinks? _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
+  String? _lastHandledLink;
 
   @override
   void initState() {
@@ -112,6 +118,7 @@ class _HomePageState extends State<HomePage> {
     _loadBusinessCards();
     _filteredBusinessCards = _businessCards;
     _searchController.addListener(_onSearchChanged);
+    _initAppLinks();
   }
 
   Future<void> _loadBusinessCards() async {
@@ -167,17 +174,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _shareBusinessCard(BusinessCard card) {
-    final l10n = AppLocalizations.of(context)!;
-    final StringBuffer sb = StringBuffer();
-    sb.writeln('${l10n.name}: ${card.name}');
-    if (card.title != null && card.title!.isNotEmpty) sb.writeln('${l10n.jobTitle}: ${card.title}');
-    if (card.company != null && card.company!.isNotEmpty) sb.writeln('${l10n.company}: ${card.company}');
-    if (card.phone != null && card.phone!.isNotEmpty) sb.writeln('${l10n.phone}: ${card.phone}');
-    if (card.email != null && card.email!.isNotEmpty) sb.writeln('${l10n.email}: ${card.email}');
-    if (card.address != null && card.address!.isNotEmpty) sb.writeln('${l10n.address}: ${card.address}');
-    if (card.website != null && card.website!.isNotEmpty) sb.writeln('${l10n.website}: ${card.website}');
-    sb.writeln(l10n.fromApp);
-    Share.share(sb.toString());
+    final link = ShareLinkService.buildLink(card);
+    Share.share('名片导入链接（点击可一键导入）：\n$link');
   }
 
   void _onSearchChanged() {
@@ -231,8 +229,80 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     // _ocrPlugin.release();
+    _linkSubscription?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initAppLinks() async {
+    if (kIsWeb) return;
+    _appLinks = AppLinks();
+
+    final initial = await _appLinks!.getInitialLink();
+    if (initial != null) {
+      _handleIncomingLink(initial.toString());
+    }
+
+    _linkSubscription = _appLinks!.uriLinkStream.listen((uri) {
+      _handleIncomingLink(uri.toString());
+    });
+  }
+
+  void _handleIncomingLink(String rawLink) {
+    if (!mounted || rawLink.trim().isEmpty) return;
+    if (_lastHandledLink == rawLink) return;
+
+    final card = ShareLinkService.tryParseCard(rawLink);
+    if (card == null) return;
+
+    _lastHandledLink = rawLink;
+    setState(() {
+      _businessCards.add(card);
+      _filterCards(_searchController.text);
+    });
+    _saveBusinessCards();
+    scaffoldMessengerKey.currentState?.showSnackBar(
+      const SnackBar(content: Text('已通过链接导入名片')),
+    );
+  }
+
+  Future<void> _showLinkImportDialog() async {
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('通过链接导入'),
+          content: TextField(
+            controller: controller,
+            minLines: 2,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              hintText: '粘贴名片分享链接',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text('导入'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == null || result.isEmpty) return;
+    _handleIncomingLink(result);
+    if (ShareLinkService.tryParseCard(result) == null) {
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        const SnackBar(content: Text('链接无效，请检查后重试')),
+      );
+    }
   }
 
   Future<void> _pickAndProcessImage({required ImageSource source}) async {
@@ -410,6 +480,15 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     Navigator.pop(context);
                     _navigateToEditorPage();
+                  },
+                ),
+                _ActionSheetItem(
+                  icon: Icons.link_outlined,
+                  title: '链接导入',
+                  subtitle: '粘贴分享链接，一键导入别人分享的名片',
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await _showLinkImportDialog();
                   },
                 ),
               ],
