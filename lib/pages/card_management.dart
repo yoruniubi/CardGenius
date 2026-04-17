@@ -8,14 +8,14 @@ import 'package:business_card_ocr/models/template.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-// import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:business_card_ocr/main.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
-// import 'package:business_card_ocr/pages/editor_page.dart';
 import 'package:business_card_ocr/models/business_card.dart';
 import 'package:business_card_ocr/pages/card_editor_page.dart';
+import 'package:business_card_ocr/services/share_link_service.dart';
 
 class CardPage extends StatefulWidget {
   const CardPage({super.key, this.showAppBar = true});
@@ -39,12 +39,14 @@ class _CardPageState extends State<CardPage> {
   late TextEditingController _addressController;
   late TextEditingController _websiteController;
   late TextEditingController _notesController;
+
   bool _showPhone = true;
   bool _showEmail = true;
   bool _showAddress = true;
   bool _showWebsite = true;
   bool _showImage = false;
   String? _editingImagePath;
+
   @override
   void initState() {
     super.initState();
@@ -185,7 +187,7 @@ class _CardPageState extends State<CardPage> {
     super.dispose();
   }
 
- void _updatePreview() {
+  void _updatePreview() {
     if (!mounted) return;
 
     setState(() {
@@ -234,7 +236,8 @@ class _CardPageState extends State<CardPage> {
 
       _cardElements = List.from(template.elements);
 
-      final hasPhoneIcon = _cardElements.any((e) => e is IconElement && e.tag == 'phone_icon');
+      final hasPhoneIcon =
+          _cardElements.any((e) => e is IconElement && e.tag == 'phone_icon');
       if (!hasPhoneIcon) {
         _cardElements.addAll([
           IconElement(
@@ -304,16 +307,6 @@ class _CardPageState extends State<CardPage> {
         _showWebsite = data['showWebsite'] as bool? ?? true;
         _showImage = data['showImage'] as bool? ?? false;
 
-        if (data['template_id'] != null) {
-          _currentTemplate = BusinessCardTemplate(
-            id: data['template_id'] as String,
-            name: data['template_name'] ?? '已保存模板',
-            previewImagePath: data['template_preview_path'] as String?,
-            backgroundColorValue: data['template_background_color_value'] as int?,
-            elements: [],
-          );
-        }
-
         if (data['elements'] != null) {
           final elementsList = data['elements'] as List;
           _cardElements = elementsList
@@ -321,7 +314,18 @@ class _CardPageState extends State<CardPage> {
               .toList();
         }
 
-        final hasPhoneIcon = _cardElements.any((e) => e is IconElement && e.tag == 'phone_icon');
+        if (data['template_id'] != null) {
+          _currentTemplate = BusinessCardTemplate(
+            id: data['template_id'] as String,
+            name: data['template_name'] ?? '已保存模板',
+            previewImagePath: data['template_preview_path'] as String?,
+            backgroundColorValue: data['template_background_color_value'] as int?,
+            elements: _cardElements.map((e) => CardElement.fromJson(e.toJson())).toList(),
+          );
+        }
+
+        final hasPhoneIcon =
+            _cardElements.any((e) => e is IconElement && e.tag == 'phone_icon');
         if (!hasPhoneIcon) {
           _cardElements.addAll([
             IconElement(
@@ -389,47 +393,158 @@ class _CardPageState extends State<CardPage> {
     }
   }
 
-  // String _generateVCard() {
-  //   return 'BEGIN:VCARD'
-  //       'VERSION:3.0'
-  //       'FN:${_nameController.text}'
-  //       'ORG:${_companyController.text}'
-  //       'TITLE:${_titleController.text}'
-  //       'TEL;TYPE=CELL:${_phoneController.text}'
-  //       'EMAIL:${_emailController.text}'
-  //       'ADR;TYPE=WORK:;;${_addressController.text};;;;'
-  //       'END:VCARD';
-  // }
+  BusinessCard _buildCurrentCard() {
+    return BusinessCard(
+      name: _nameController.text.trim(),
+      title: _titleController.text.trim().isEmpty
+          ? null
+          : _titleController.text.trim(),
+      company: _companyController.text.trim().isEmpty
+          ? null
+          : _companyController.text.trim(),
+      phone: _phoneController.text.trim().isEmpty
+          ? null
+          : _phoneController.text.trim(),
+      email: _emailController.text.trim().isEmpty
+          ? null
+          : _emailController.text.trim(),
+      address: _addressController.text.trim().isEmpty
+          ? null
+          : _addressController.text.trim(),
+      website: _websiteController.text.trim().isEmpty
+          ? null
+          : _websiteController.text.trim(),
+      notes:
+          _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      imagePath: _editingImagePath,
+      showPhone: _showPhone,
+      showEmail: _showEmail,
+      showAddress: _showAddress,
+      showWebsite: _showWebsite,
+      showImage: _showImage,
+    );
+  }
 
-  // void _shareViaQrCode() {
-  //   final l10n = AppLocalizations.of(context)!;
-  //   final vCardData = _generateVCard();
+  void _shareCard() {
+    if (!_hasBasicCardInfo) {
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        const SnackBar(content: Text('请先完善你的电子名片信息')),
+      );
+      return;
+    }
 
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: Text(l10n.scanToSaveContact),
-  //       content: SizedBox(
-  //         width: 250,
-  //         height: 250,
-  //         child: Center(
-  //           child: QrImageView(
-  //             data: vCardData,
-  //             version: QrVersions.auto,
-  //             size: 200.0,
-  //             backgroundColor: Colors.white,
-  //           ),
-  //         ),
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: Text(l10n.close),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD1D5DB),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '分享名片',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildShareOptionItem(
+                  icon: Icons.qr_code_2_outlined,
+                  title: '二维码分享',
+                  subtitle: '生成二维码，对方使用名片智造扫码即可直接导入',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showQrShareDialog();
+                  },
+                ),
+                _buildShareOptionItem(
+                  icon: Icons.text_snippet_outlined,
+                  title: '文字信息分享',
+                  subtitle: '以文字链接形式分享名片信息',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _shareAsText();
+                  },
+                ),
+                _buildShareOptionItem(
+                  icon: Icons.image_outlined,
+                  title: '图片分享',
+                  subtitle: '将当前电子名片导出为图片后分享',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _exportAsJpg();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showQrShareDialog() {
+    final card = _buildCurrentCard();
+    final link = ShareLinkService.buildLink(card);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('二维码分享'),
+        content: SizedBox(
+          width: 260,
+          height: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              QrImageView(
+                data: link,
+                version: QrVersions.auto,
+                size: 220,
+                backgroundColor: Colors.white,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '使用名片智造扫一扫即可直接导入',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF6B7280),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _shareAsText() {
+    final card = _buildCurrentCard();
+    final link = ShareLinkService.buildLink(card);
+    Share.share(link);
+  }
 
   void _templateSetting() async {
     final selectedTemplate = await Navigator.push<BusinessCardTemplate>(
@@ -443,22 +558,7 @@ class _CardPageState extends State<CardPage> {
   }
 
   Future<void> _goToEditPage() async {
-    final currentCard = BusinessCard(
-      name: _nameController.text.trim(),
-      title: _titleController.text.trim().isEmpty ? null : _titleController.text.trim(),
-      company: _companyController.text.trim().isEmpty ? null : _companyController.text.trim(),
-      phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-      email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-      address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
-      website: _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim(),
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-      imagePath: _editingImagePath,
-      showPhone: _showPhone,
-      showEmail: _showEmail,
-      showAddress: _showAddress,
-      showWebsite: _showWebsite,
-      showImage: _showImage,
-    );
+    final currentCard = _buildCurrentCard();
 
     final result = await CardEditorPage.open(
       context,
@@ -515,16 +615,6 @@ class _CardPageState extends State<CardPage> {
       debugPrint('保存编辑后的电子名片失败: $e');
     }
   }
-
-  // Widget _buildCardPreviewWidget() {
-  //   DecorationImage? decorationImage;
-  //   if (_currentTemplate?.previewImagePath != null) {
-  //     final path = _currentTemplate!.previewImagePath!;
-  //     if (path.startsWith('assets/')) {
-  //       decorationImage = DecorationImage(
-  //     ),
-  //   );
-  // }
 
   Widget _buildCardPreviewWidget() {
     DecorationImage? decorationImage;
@@ -583,18 +673,26 @@ class _CardPageState extends State<CardPage> {
                         fontSize: element.fontSize,
                         fontFamily: element.fontFamily,
                         color: element.color,
-                        fontWeight: element.isBold ? FontWeight.bold : FontWeight.normal,
-                        fontStyle: element.isItalic ? FontStyle.italic : FontStyle.normal,
+                        fontWeight: element.isBold
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        fontStyle: element.isItalic
+                            ? FontStyle.italic
+                            : FontStyle.normal,
                       ),
                     ),
                   ),
                 );
               } else if (element is IconElement) {
                 final shouldHide = switch (element.tag) {
-                  'phone_icon' => !_showPhone || _phoneController.text.trim().isEmpty,
-                  'email_icon' => !_showEmail || _emailController.text.trim().isEmpty,
-                  'address_icon' => !_showAddress || _addressController.text.trim().isEmpty,
-                  'website_icon' => !_showWebsite || _websiteController.text.trim().isEmpty,
+                  'phone_icon' =>
+                    !_showPhone || _phoneController.text.trim().isEmpty,
+                  'email_icon' =>
+                    !_showEmail || _emailController.text.trim().isEmpty,
+                  'address_icon' =>
+                    !_showAddress || _addressController.text.trim().isEmpty,
+                  'website_icon' =>
+                    !_showWebsite || _websiteController.text.trim().isEmpty,
                   _ => false,
                 };
                 if (shouldHide) return const SizedBox.shrink();
@@ -714,6 +812,63 @@ class _CardPageState extends State<CardPage> {
     );
   }
 
+  Widget _buildShareOptionItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEAF2FF),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: const Color(0xFF1677FF)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyHint() {
     return Container(
       width: double.infinity,
@@ -725,7 +880,8 @@ class _CardPageState extends State<CardPage> {
       ),
       child: const Column(
         children: [
-          Icon(Icons.credit_card_outlined, size: 34, color: Color(0xFF9CA3AF)),
+          Icon(Icons.credit_card_outlined,
+              size: 34, color: Color(0xFF9CA3AF)),
           SizedBox(height: 10),
           Text(
             '先完善你的电子名片信息',
@@ -767,14 +923,6 @@ class _CardPageState extends State<CardPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // const Text(
-          //   '我的电子名片',
-          //   style: TextStyle(
-          //     fontSize: 22,
-          //     fontWeight: FontWeight.w700,
-          //     color: Color(0xFF111827),
-          //   ),
-          // ),
           const SizedBox(height: 6),
           const Text(
             '用于展示、分享和管理你的数字名片形象。',
@@ -798,7 +946,7 @@ class _CardPageState extends State<CardPage> {
               _buildActionItem(
                 icon: Icons.share_outlined,
                 label: l10n.share,
-                onTap: _exportAsJpg,
+                onTap: _shareCard,
               ),
               const SizedBox(width: 10),
               _buildActionItem(
@@ -867,30 +1015,3 @@ class _CardPageState extends State<CardPage> {
     );
   }
 }
-
-// class IconElement extends CardElement {
-//   IconElement({
-//     required this.icon,
-//     required this.size,
-//     required this.color,
-//     super.tag,
-//     required super.x,
-//     required super.y,
-//   });
-
-//   final IconData icon;
-//   final double size;
-//   final Color color;
-
-//   @override
-//   Map<String, dynamic> toJson() => {
-//         'type': 'icon',
-//         'tag': tag,
-//         'x': x,
-//         'y': y,
-//         'iconCodePoint': icon.codePoint,
-//         'iconFontFamily': icon.fontFamily,
-//         'size': size,
-//         'color': color.value,
-//       };
-// }

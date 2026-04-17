@@ -76,20 +76,18 @@ class _CardEditorPageState extends State<CardEditorPage> {
     _addressController = TextEditingController(text: _editingCard.address ?? '');
     _websiteController = TextEditingController(text: _editingCard.website ?? '');
     _notesController = TextEditingController(text: _editingCard.notes ?? '');
-
+    
     _showPhone = _editingCard.showPhone;
     _showEmail = _editingCard.showEmail;
     _showAddress = _editingCard.showAddress;
     _showWebsite = _editingCard.showWebsite;
     _showImage = _editingCard.showImage;
-
+    
     if ((_editingCard.imagePath ?? '').isNotEmpty) {
       _pickedImage = XFile(_editingCard.imagePath!);
     }
 
-    _previewElements = _cloneElements(
-      _currentTemplate?.elements ?? _buildDefaultElements(),
-    );
+    _rebuildPreviewElements();
 
     _nameController.addListener(_updatePreview);
     _titleController.addListener(_updatePreview);
@@ -98,7 +96,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
     _emailController.addListener(_updatePreview);
     _addressController.addListener(_updatePreview);
     _websiteController.addListener(_updatePreview);
-
+    _notesController.addListener(_updatePreview);
     _updatePreview();
   }
 
@@ -221,7 +219,14 @@ class _CardEditorPageState extends State<CardEditorPage> {
       ),
     ];
   }
-
+  void _rebuildPreviewElements() {
+    final templateElements = _currentTemplate?.elements;
+    if (templateElements == null || templateElements.isEmpty) {
+      _previewElements = _cloneElements(_buildDefaultElements());
+    } else {
+      _previewElements = _cloneElements(templateElements);
+    }
+  }
   void _updatePreview() {
     if (!mounted) return;
 
@@ -250,6 +255,9 @@ class _CardEditorPageState extends State<CardEditorPage> {
             case 'website':
               element.content = _showWebsite ? _websiteController.text.trim() : '';
               break;
+            // case 'notes':
+            //   element.content = _notesController.text.trim();
+            //   break;
           }
         }
       }
@@ -264,6 +272,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
       _pickedImage = image;
       _showImage = true;
     });
+    _updatePreview();
   }
 
   void _save() {

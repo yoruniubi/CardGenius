@@ -19,6 +19,9 @@ import 'package:business_card_ocr/l10n/app_localizations.dart';
 import 'package:antd_flutter_mobile/index.dart';
 import 'package:business_card_ocr/services/ocr_service.dart';
 import 'package:business_card_ocr/services/share_link_service.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 void main() {
@@ -120,7 +123,98 @@ class _HomePageState extends State<HomePage> {
     _searchController.addListener(_onSearchChanged);
     _initAppLinks();
   }
+  void _shareBusinessCardAsText(BusinessCard card) {
+    final link = ShareLinkService.buildLink(card);
+    Share.share(link);
+  }
+  void _showShareQrDialog(BusinessCard card) {
+    final link = ShareLinkService.buildLink(card);
 
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('二维码分享'),
+        content: SizedBox(
+          width: 260,
+          height: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              QrImageView(
+                data: link,
+                version: QrVersions.auto,
+                size: 220,
+                backgroundColor: Colors.white,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '使用名片智造扫一扫即可直接导入',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF6B7280),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+  int _findExistingCardIndex(BusinessCard incoming) {
+    String normalizePhone(String? value) =>
+        (value ?? '').replaceAll(RegExp(r'\s+'), '').trim();
+
+    String normalizeText(String? value) =>
+        (value ?? '').trim().toLowerCase();
+
+    for (int i = 0; i < _businessCards.length; i++) {
+      final current = _businessCards[i];
+
+      final samePhone = normalizePhone(current.phone).isNotEmpty &&
+          normalizePhone(current.phone) == normalizePhone(incoming.phone);
+
+      final sameEmail = normalizeText(current.email).isNotEmpty &&
+          normalizeText(current.email) == normalizeText(incoming.email);
+
+      final sameNameCompany =
+          normalizeText(current.name) == normalizeText(incoming.name) &&
+          normalizeText(current.company) == normalizeText(incoming.company) &&
+          normalizeText(current.name).isNotEmpty;
+
+      if (samePhone || sameEmail || sameNameCompany) {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  BusinessCard _mergeCard(BusinessCard oldCard, BusinessCard newCard) {
+    return BusinessCard(
+      id: oldCard.id,
+      name: newCard.name.isNotEmpty ? newCard.name : oldCard.name,
+      title: (newCard.title?.isNotEmpty ?? false) ? newCard.title : oldCard.title,
+      company: (newCard.company?.isNotEmpty ?? false) ? newCard.company : oldCard.company,
+      phone: (newCard.phone?.isNotEmpty ?? false) ? newCard.phone : oldCard.phone,
+      email: (newCard.email?.isNotEmpty ?? false) ? newCard.email : oldCard.email,
+      address: (newCard.address?.isNotEmpty ?? false) ? newCard.address : oldCard.address,
+      website: (newCard.website?.isNotEmpty ?? false) ? newCard.website : oldCard.website,
+      notes: (newCard.notes?.isNotEmpty ?? false) ? newCard.notes : oldCard.notes,
+      imagePath: (newCard.imagePath?.isNotEmpty ?? false) ? newCard.imagePath : oldCard.imagePath,
+      showPhone: newCard.showPhone,
+      showEmail: newCard.showEmail,
+      showAddress: newCard.showAddress,
+      showWebsite: newCard.showWebsite,
+      showImage: newCard.showImage,
+    );
+  }
   Future<void> _loadBusinessCards() async {
     final prefs = await SharedPreferences.getInstance();
     final String? cardsJson = prefs.getString('business_cards');
@@ -174,8 +268,60 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _shareBusinessCard(BusinessCard card) {
-    final link = ShareLinkService.buildLink(card);
-    Share.share('名片导入链接（点击可一键导入）：\n$link');
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD1D5DB),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '分享名片',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _ActionSheetItem(
+                  icon: Icons.qr_code_2_outlined,
+                  title: '二维码分享',
+                  subtitle: '生成二维码，对方使用名片智造扫码即可直接导入',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showShareQrDialog(card);
+                  },
+                ),
+                _ActionSheetItem(
+                  icon: Icons.text_snippet_outlined,
+                  title: '文字信息分享',
+                  subtitle: '以链接形式分享名片信息,复制到浏览器中打开即可导入',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _shareBusinessCardAsText(card);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _onSearchChanged() {
@@ -247,23 +393,39 @@ class _HomePageState extends State<HomePage> {
       _handleIncomingLink(uri.toString());
     });
   }
-
-  void _handleIncomingLink(String rawLink) {
+  Future<void> _scanQrCode() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QrScanPage(
+          onScanned: (value) async {
+            Navigator.pop(context);
+            _handleIncomingLink(value);
+          },
+        ),
+      ),
+    );
+  }
+  void _handleIncomingLink(String rawLink) async {
     if (!mounted || rawLink.trim().isEmpty) return;
     if (_lastHandledLink == rawLink) return;
 
     final card = ShareLinkService.tryParseCard(rawLink);
-    if (card == null) return;
+    if (card == null) {
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        const SnackBar(content: Text('二维码内容无效或解析失败')),
+      );
+      return;
+    }
 
     _lastHandledLink = rawLink;
-    setState(() {
-      _businessCards.add(card);
-      _filterCards(_searchController.text);
-    });
-    _saveBusinessCards();
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(content: Text('已通过链接导入名片')),
-    );
+
+    final existingIndex = _findExistingCardIndex(card);
+    final editingCard = existingIndex >= 0
+        ? _mergeCard(_businessCards[existingIndex], card)
+        : card;
+
+    await _navigateToEditorPage(card: editingCard);
   }
 
   // Future<void> _showLinkImportDialog() async {
@@ -731,6 +893,19 @@ class _HomePageState extends State<HomePage> {
               : (_selectedIndex == 1 ? l10n.myCards : l10n.settings),
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
         ),
+        actions: _selectedIndex == 0
+            ? [
+                TextButton.icon(
+                  onPressed: _scanQrCode,
+                  icon: const Icon(Icons.qr_code_scanner_outlined, size: 20),
+                  label: const Text('扫一扫',
+                      style: TextStyle(fontSize: 16, 
+                      fontWeight: FontWeight.w600
+                    ),
+                  ),
+                ),
+              ]
+            : null,
       ),
       body: IndexedStack(
         index: _selectedIndex,
@@ -953,6 +1128,62 @@ class _ActionSheetItem extends StatelessWidget {
             const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class QrScanPage extends StatefulWidget {
+  const QrScanPage({
+    super.key,
+    required this.onScanned,
+  });
+
+  final ValueChanged<String> onScanned;
+
+  @override
+  State<QrScanPage> createState() => _QrScanPageState();
+}
+
+class _QrScanPageState extends State<QrScanPage> {
+  bool _handled = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('扫码导入'),
+      ),
+      body: Stack(
+        children: [
+          MobileScanner(
+            onDetect: (capture) {
+              if (_handled) return;
+              final codes = capture.barcodes;
+              for (final code in codes) {
+                final raw = code.rawValue;
+                if (raw != null && raw.trim().isNotEmpty) {
+                  _handled = true;
+                  widget.onScanned(raw);
+                  break;
+                }
+              }
+            },
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              color: Colors.black54,
+              child: const Text(
+                '请将二维码放入框内，扫描后会自动进入编辑页',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
