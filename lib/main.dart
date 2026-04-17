@@ -266,44 +266,44 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _showLinkImportDialog() async {
-    final controller = TextEditingController();
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('通过链接导入'),
-          content: TextField(
-            controller: controller,
-            minLines: 2,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              hintText: '粘贴名片分享链接',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('取消'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
-              child: const Text('导入'),
-            ),
-          ],
-        );
-      },
-    );
+  // Future<void> _showLinkImportDialog() async {
+  //   final controller = TextEditingController();
+  //   final result = await showDialog<String>(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: const Text('通过链接导入'),
+  //         content: TextField(
+  //           controller: controller,
+  //           minLines: 2,
+  //           maxLines: 4,
+  //           decoration: const InputDecoration(
+  //             hintText: '粘贴名片分享链接',
+  //             border: OutlineInputBorder(),
+  //           ),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child: const Text('取消'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context, controller.text.trim()),
+  //             child: const Text('导入'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
 
-    if (result == null || result.isEmpty) return;
-    _handleIncomingLink(result);
-    if (ShareLinkService.tryParseCard(result) == null) {
-      scaffoldMessengerKey.currentState?.showSnackBar(
-        const SnackBar(content: Text('链接无效，请检查后重试')),
-      );
-    }
-  }
+  //   if (result == null || result.isEmpty) return;
+  //   _handleIncomingLink(result);
+  //   if (ShareLinkService.tryParseCard(result) == null) {
+  //     scaffoldMessengerKey.currentState?.showSnackBar(
+  //       const SnackBar(content: Text('链接无效，请检查后重试')),
+  //     );
+  //   }
+  // }
 
   Future<void> _pickAndProcessImage({required ImageSource source}) async {
     try {
@@ -482,15 +482,15 @@ class _HomePageState extends State<HomePage> {
                     _navigateToEditorPage();
                   },
                 ),
-                _ActionSheetItem(
-                  icon: Icons.link_outlined,
-                  title: '链接导入',
-                  subtitle: '粘贴分享链接，一键导入别人分享的名片',
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await _showLinkImportDialog();
-                  },
-                ),
+                // _ActionSheetItem(
+                //   icon: Icons.link_outlined,
+                //   title: '链接导入',
+                //   subtitle: '粘贴分享链接，一键导入别人分享的名片',
+                //   onTap: () async {
+                //     Navigator.pop(context);
+                //     await _showLinkImportDialog();
+                //   },
+                // ),
               ],
             ),
           ),
