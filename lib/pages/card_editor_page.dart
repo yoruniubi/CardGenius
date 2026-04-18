@@ -623,7 +623,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
       appBar: AppBar(
-        title: const Text('编辑电子名片'),
+        title: Text(l10n.editDigitalCard),
         centerTitle: false,
       ),
       bottomNavigationBar: SafeArea(
@@ -641,12 +641,12 @@ class _CardEditorPageState extends State<CardEditorPage> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
-          const _SectionLabel(title: '实时预览'),
+          _SectionLabel(title: l10n.realtimePreview),
           const SizedBox(height: 8),
           _buildPreviewCard(),
 
           const SizedBox(height: 24),
-          const _SectionLabel(title: '头像'),
+          _SectionLabel(title: l10n.avatar),
           const SizedBox(height: 8),
           _Panel(
             padding: const EdgeInsets.all(16),
@@ -670,10 +670,10 @@ class _CardEditorPageState extends State<CardEditorPage> {
                         ),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    '上传后可在名片预览中实时查看头像效果。',
-                    style: TextStyle(
+                    l10n.avatarUploadHint,
+                    style: const TextStyle(
                       fontSize: 13,
                       color: Color(0xFF6B7280),
                       height: 1.5,
@@ -684,14 +684,14 @@ class _CardEditorPageState extends State<CardEditorPage> {
                 AntdButton(
                   fill: AntdButtonFill.outline,
                   onTap: _pickImage,
-                  child: const Text('上传'),
+                  child: Text(l10n.upload),
                 ),
               ],
             ),
           ),
 
           const SizedBox(height: 24),
-          const _SectionLabel(title: '基础信息'),
+          _SectionLabel(title: l10n.basicInfo),
           const SizedBox(height: 8),
           _Panel(
             padding: const EdgeInsets.all(16),
@@ -730,7 +730,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
           ),
 
           const SizedBox(height: 24),
-          const _SectionLabel(title: '联系方式'),
+          _SectionLabel(title: l10n.contactInfo),
           const SizedBox(height: 8),
           _Panel(
             padding: const EdgeInsets.all(16),
@@ -769,13 +769,13 @@ class _CardEditorPageState extends State<CardEditorPage> {
           ),
 
           const SizedBox(height: 24),
-          const _SectionLabel(title: '展示内容'),
+          _SectionLabel(title: l10n.displayContent),
           const SizedBox(height: 8),
           _Panel(
             child: Column(
               children: [
                 _buildSwitchTile(
-                  title: '显示电话',
+                  title: l10n.showPhone,
                   value: _showPhone,
                   onChanged: (value) {
                     setState(() => _showPhone = value);
@@ -785,7 +785,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
                 ),
                 const Divider(height: 1),
                 _buildSwitchTile(
-                  title: '显示邮箱',
+                  title: l10n.showEmail,
                   value: _showEmail,
                   onChanged: (value) {
                     setState(() => _showEmail = value);
@@ -795,7 +795,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
                 ),
                 const Divider(height: 1),
                 _buildSwitchTile(
-                  title: '显示地址',
+                  title: l10n.showAddress,
                   value: _showAddress,
                   onChanged: (value) {
                     setState(() => _showAddress = value);
@@ -805,7 +805,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
                 ),
                 const Divider(height: 1),
                 _buildSwitchTile(
-                  title: '显示网站',
+                  title: l10n.showWebsite,
                   value: _showWebsite,
                   onChanged: (value) {
                     setState(() => _showWebsite = value);
@@ -815,7 +815,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
                 ),
                 const Divider(height: 1),
                 _buildSwitchTile(
-                  title: '显示头像',
+                  title: l10n.showAvatar,
                   value: _showImage,
                   onChanged: (value) {
                     setState(() => _showImage = value);

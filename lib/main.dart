@@ -141,8 +141,10 @@ class _HomePageState extends State<HomePage> {
   void _showQrShareDialog(BusinessCard card) {
     final link = ShareLinkService.buildLink(card);
 
+    final l10n = AppLocalizations.of(context)!;
+
     AntdModal.show(
-      title: const Text('二维码分享'),
+      title: Text(l10n.qrShare),
       content: Padding(
         padding: const EdgeInsets.only(top: 8),
         child: Column(
@@ -155,10 +157,10 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: Colors.white,
             ),
             const SizedBox(height: 12),
-            const Text(
-              '使用名片智造扫一扫即可直接导入',
+            Text(
+              l10n.scanToImportDirectly,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: Color(0xFF6B7280),
               ),
@@ -168,7 +170,7 @@ class _HomePageState extends State<HomePage> {
       ),
       actions: [
         AntdModalAction(
-          title: const Text('关闭'),
+          title: Text(l10n.close),
           onTap: (close) async {
             await close();
           },
@@ -347,6 +349,7 @@ class _HomePageState extends State<HomePage> {
 }
 
   void _shareBusinessCard(BusinessCard card) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -369,18 +372,18 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    '分享名片',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    l10n.shareCardTitle,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                 ),
                 const SizedBox(height: 16),
                 _ActionSheetItem(
                   icon: Icons.qr_code_2_outlined,
-                  title: '二维码分享',
-                  subtitle: '生成二维码，对方使用名片智造扫码即可直接导入',
+                  title: l10n.qrShare,
+                  subtitle: l10n.scanToImportDirectly,
                   onTap: () {
                     Navigator.pop(context);
                     _showQrShareDialog(card);
@@ -388,8 +391,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 _ActionSheetItem(
                   icon: Icons.text_snippet_outlined,
-                  title: '文字信息分享',
-                  subtitle: '以链接形式分享名片信息,复制到浏览器中打开即可导入',
+                  title: l10n.textShare,
+                  subtitle: l10n.textShareDescription,
                   onTap: () {
                     Navigator.pop(context);
                     _shareBusinessCardAsText(card);
@@ -706,7 +709,7 @@ class _HomePageState extends State<HomePage> {
                 _ActionSheetItem(
                   icon: Icons.document_scanner_outlined,
                   title: l10n.cameraImport,
-                  subtitle: '拍摄并自动裁切名片后识别联系人信息',
+                  subtitle: l10n.cameraImportDescription,
                   onTap: () {
                     Navigator.pop(context);
                     _scanDocument();
@@ -715,7 +718,7 @@ class _HomePageState extends State<HomePage> {
                 _ActionSheetItem(
                   icon: Icons.photo_library_outlined,
                   title: l10n.galleryImport,
-                  subtitle: '从相册选择已有名片图片进行识别',
+                  subtitle: l10n.galleryImportDescription,
                   onTap: () {
                     Navigator.pop(context);
                     _pickAndProcessImage(source: ImageSource.gallery);
@@ -724,7 +727,7 @@ class _HomePageState extends State<HomePage> {
                 _ActionSheetItem(
                   icon: Icons.edit_note_outlined,
                   title: l10n.manualInput,
-                  subtitle: '不识别图片，直接手动新增联系人',
+                  subtitle: l10n.manualInputDescription,
                   onTap: () {
                     Navigator.pop(context);
                     _navigateToEditorPage();
@@ -788,7 +791,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '已保存名片',
+                        l10n.savedCards,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -984,10 +987,9 @@ class _HomePageState extends State<HomePage> {
                 TextButton.icon(
                   onPressed: _scanQrCode,
                   icon: const Icon(Icons.qr_code_scanner_outlined, size: 20),
-                  label: const Text('扫一扫',
-                      style: TextStyle(fontSize: 16, 
-                      fontWeight: FontWeight.w600
-                    ),
+                  label: Text(
+                    l10n.scan,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ]

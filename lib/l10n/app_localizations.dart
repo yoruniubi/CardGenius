@@ -655,6 +655,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Click the + button to import a card'**
   String get clickPlusToImport;
+
+  /// No description provided for @stepOneSelectBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 1: Select Background'**
+  String get stepOneSelectBackground;
+
+  /// No description provided for @stepTwoSelectLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 2: Select Layout'**
+  String get stepTwoSelectLayout;
+
+  /// No description provided for @backgroundStepDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an image background, solid color, or upload your own background image.'**
+  String get backgroundStepDescription;
+
+  /// No description provided for @layoutStepDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Layout determines how name, company, and contact info are arranged.'**
+  String get layoutStepDescription;
+
+  /// No description provided for @applyStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Style'**
+  String get applyStyle;
+
+  /// No description provided for @imageBackground1.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Background 1'**
+  String get imageBackground1;
+
+  /// No description provided for @imageBackground2.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Background 2'**
+  String get imageBackground2;
+
+  /// No description provided for @imageBackground3.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Background 3'**
+  String get imageBackground3;
+
+  /// No description provided for @imageBackground4.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Background 4'**
+  String get imageBackground4;
+
+  /// No description provided for @solidBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Solid Blue'**
+  String get solidBlue;
+
+  /// No description provided for @darkGray.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Gray'**
+  String get darkGray;
+
+  /// No description provided for @lightGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Light Green'**
+  String get lightGreen;
+
+  /// No description provided for @lightGray.
+  ///
+  /// In en, this message translates to:
+  /// **'Light Gray'**
+  String get lightGray;
+
+  /// No description provided for @customBackgroundSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Background Selected'**
+  String get customBackgroundSelected;
+
+  /// No description provided for @layoutClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic Business'**
+  String get layoutClassic;
+
+  /// No description provided for @layoutClassicDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Main info top-left, avatar top-right, contacts displayed vertically below'**
+  String get layoutClassicDesc;
+
+  /// No description provided for @layoutCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Centered Minimalist'**
+  String get layoutCenter;
+
+  /// No description provided for @layoutCenterDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Centered layout, ideal for clean personal business cards'**
+  String get layoutCenterDesc;
+
+  /// No description provided for @layoutBottomBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom Bar Info'**
+  String get layoutBottomBar;
+
+  /// No description provided for @layoutBottomBarDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity info at top, contacts displayed horizontally at bottom'**
+  String get layoutBottomBarDesc;
+
+  /// No description provided for @editDigitalCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Digital Card'**
+  String get editDigitalCard;
+
+  /// No description provided for @realtimePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Real-time Preview'**
+  String get realtimePreview;
+
+  /// No description provided for @avatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Avatar'**
+  String get avatar;
+
+  /// No description provided for @avatarUploadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload to see avatar effect in the card preview in real-time.'**
+  String get avatarUploadHint;
+
+  /// No description provided for @upload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get upload;
+
+  /// No description provided for @contactInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Info'**
+  String get contactInfo;
+
+  /// No description provided for @displayContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Display Content'**
+  String get displayContent;
+
+  /// No description provided for @showPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Phone'**
+  String get showPhone;
+
+  /// No description provided for @showEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Email'**
+  String get showEmail;
+
+  /// No description provided for @showAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Address'**
+  String get showAddress;
+
+  /// No description provided for @showWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Website'**
+  String get showWebsite;
+
+  /// No description provided for @showAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Avatar'**
+  String get showAvatar;
+
+  /// No description provided for @sampleAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Address'**
+  String get sampleAddress;
+
+  /// No description provided for @sourceImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Source Image'**
+  String get sourceImage;
+
+  /// No description provided for @sourceImageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used to verify OCR results. Tap to choose another image.'**
+  String get sourceImageHint;
+
+  /// No description provided for @coreInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Core Info'**
+  String get coreInfo;
+
+  /// No description provided for @general.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get general;
+
+  /// No description provided for @recognitionEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition Engine'**
+  String get recognitionEngine;
+
+  /// No description provided for @ocrEngineReadyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The recognition engine is initialized and ready for business card recognition.'**
+  String get ocrEngineReadyDescription;
+
+  /// No description provided for @ocrEngineNotReadyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The recognition engine is not ready yet. Please try again later.'**
+  String get ocrEngineNotReadyDescription;
+
+  /// No description provided for @notReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Ready'**
+  String get notReady;
+
+  /// No description provided for @aboutAppSection.
+  ///
+  /// In en, this message translates to:
+  /// **'About App'**
+  String get aboutAppSection;
+
+  /// No description provided for @currentVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Installed Version'**
+  String get currentVersion;
+
+  /// No description provided for @aboutThisApp.
+  ///
+  /// In en, this message translates to:
+  /// **'About This App'**
+  String get aboutThisApp;
+
+  /// No description provided for @viewAppIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'View app introduction and feature overview'**
+  String get viewAppIntro;
+
+  /// No description provided for @appIntroDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'An intelligent business card recognition and digital card management app based on Flutter, supporting OCR, template display, and QR/link import.'**
+  String get appIntroDescription;
+
+  /// No description provided for @gotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get gotIt;
+
+  /// No description provided for @completeDigitalCardInfoFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please complete your digital business card information first'**
+  String get completeDigitalCardInfoFirst;
+
+  /// No description provided for @shareCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Card'**
+  String get shareCardTitle;
+
+  /// No description provided for @qrShare.
+  ///
+  /// In en, this message translates to:
+  /// **'QR Code Share'**
+  String get qrShare;
+
+  /// No description provided for @qrShareDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate a QR code so others can scan it with CardGenius to import directly'**
+  String get qrShareDescription;
+
+  /// No description provided for @textShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Text Share'**
+  String get textShare;
+
+  /// No description provided for @textShareDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Share card information as a text link, which can be imported by opening it in a browser'**
+  String get textShareDescription;
+
+  /// No description provided for @imageShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Share'**
+  String get imageShare;
+
+  /// No description provided for @imageShareDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Export the current digital business card as an image and share it'**
+  String get imageShareDescription;
+
+  /// No description provided for @scanToImportDirectly.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan with CardGenius to import directly'**
+  String get scanToImportDirectly;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @completeDigitalCardInfoPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your digital business card information first'**
+  String get completeDigitalCardInfoPrompt;
+
+  /// No description provided for @completeDigitalCardInfoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Later you can add an avatar, adjust displayed fields, and choose different templates and background styles on the edit page.'**
+  String get completeDigitalCardInfoHint;
+
+  /// No description provided for @cardManagementDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Used to display, share, and manage your digital business card presence.'**
+  String get cardManagementDescription;
+
+  /// No description provided for @templateEditShareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates control background and layout. The edit page controls avatar, displayed fields, and personalized content settings. Share lets you send your card information to others in different formats.'**
+  String get templateEditShareHint;
+
+  /// No description provided for @cameraImportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture and auto-crop a business card to recognize contact information'**
+  String get cameraImportDescription;
+
+  /// No description provided for @galleryImportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an existing business card image from the gallery for recognition'**
+  String get galleryImportDescription;
+
+  /// No description provided for @manualInputDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip image recognition and add a contact manually'**
+  String get manualInputDescription;
+
+  /// No description provided for @savedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Cards'**
+  String get savedCards;
+
+  /// No description provided for @scan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get scan;
 }
 
 class _AppLocalizationsDelegate

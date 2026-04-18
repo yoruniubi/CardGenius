@@ -361,7 +361,7 @@ class _CardPageState extends State<CardPage> {
         if (data['template_id'] != null) {
           _currentTemplate = BusinessCardTemplate(
             id: data['template_id'] as String,
-            name: data['template_name'] ?? '已保存模板',
+            name: data['template_name'] ?? AppLocalizations.of(context)!.savedTemplate,
             previewImagePath: data['template_preview_path'] as String?,
             backgroundColorValue: data['template_background_color_value'] as int?,
             elements: _cardElements.map((e) => CardElement.fromJson(e.toJson())).toList(),
@@ -471,8 +471,9 @@ class _CardPageState extends State<CardPage> {
 
   void _shareCard() {
     if (!_hasBasicCardInfo) {
+      final l10n = AppLocalizations.of(context)!;
       scaffoldMessengerKey.currentState?.showSnackBar(
-        const SnackBar(content: Text('请先完善你的电子名片信息')),
+        SnackBar(content: Text(l10n.completeDigitalCardInfoFirst)),
       );
       return;
     }
@@ -499,18 +500,18 @@ class _CardPageState extends State<CardPage> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    '分享名片',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    AppLocalizations.of(context)!.shareCardTitle,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                 ),
                 const SizedBox(height: 16),
                 _buildShareOptionItem(
                   icon: Icons.qr_code_2_outlined,
-                  title: '二维码分享',
-                  subtitle: '生成二维码，对方使用名片智造扫码即可直接导入',
+                  title: AppLocalizations.of(context)!.qrShare,
+                  subtitle: AppLocalizations.of(context)!.qrShareDescription,
                   onTap: () {
                     Navigator.pop(context);
                     _showQrShareDialog();
@@ -518,8 +519,8 @@ class _CardPageState extends State<CardPage> {
                 ),
                 _buildShareOptionItem(
                   icon: Icons.text_snippet_outlined,
-                  title: '文字信息分享',
-                  subtitle: '以文字链接形式分享名片信息,复制到浏览器中打开即可导入',
+                  title: AppLocalizations.of(context)!.textShare,
+                  subtitle: AppLocalizations.of(context)!.textShareDescription,
                   onTap: () {
                     Navigator.pop(context);
                     _shareAsText();
@@ -527,8 +528,8 @@ class _CardPageState extends State<CardPage> {
                 ),
                 _buildShareOptionItem(
                   icon: Icons.image_outlined,
-                  title: '图片分享',
-                  subtitle: '将当前电子名片导出为图片后分享',
+                  title: AppLocalizations.of(context)!.imageShare,
+                  subtitle: AppLocalizations.of(context)!.imageShareDescription,
                   onTap: () {
                     Navigator.pop(context);
                     _exportAsJpg();
@@ -546,8 +547,10 @@ class _CardPageState extends State<CardPage> {
     final card = _buildCurrentCard();
     final link = ShareLinkService.buildLink(card);
 
+    final l10n = AppLocalizations.of(context)!;
+
     AntdModal.show(
-      title: const Text('二维码分享'),
+      title: Text(l10n.qrShare),
       content: Padding(
         padding: const EdgeInsets.only(top: 8),
         child: Column(
@@ -560,10 +563,10 @@ class _CardPageState extends State<CardPage> {
               backgroundColor: Colors.white,
             ),
             const SizedBox(height: 12),
-            const Text(
-              '使用名片智造扫一扫即可直接导入',
+            Text(
+              l10n.scanToImportDirectly,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: Color(0xFF6B7280),
               ),
@@ -573,7 +576,7 @@ class _CardPageState extends State<CardPage> {
       ),
       actions: [
         AntdModalAction(
-          title: const Text('关闭'),
+          title: Text(l10n.close),
           onTap: (close) async {
             await close();
           },
@@ -925,24 +928,24 @@ class _CardPageState extends State<CardPage> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.credit_card_outlined,
+          const Icon(Icons.credit_card_outlined,
               size: 34, color: Color(0xFF9CA3AF)),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
-            '先完善你的电子名片信息',
-            style: TextStyle(
+            AppLocalizations.of(context)!.completeDigitalCardInfoPrompt,
+            style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
               color: Color(0xFF111827),
             ),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           Text(
-            '后续可在编辑页中添加头像、调整展示字段，并选择不同模板与背景风格。',
+            AppLocalizations.of(context)!.completeDigitalCardInfoHint,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
               color: Color(0xFF6B7280),
               height: 1.5,
@@ -971,9 +974,9 @@ class _CardPageState extends State<CardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 6),
-          const Text(
-            '用于展示、分享和管理你的数字名片形象。',
-            style: TextStyle(
+          Text(
+            l10n.cardManagementDescription,
+            style: const TextStyle(
               fontSize: 13,
               color: Color(0xFF6B7280),
               height: 1.5,
@@ -998,7 +1001,7 @@ class _CardPageState extends State<CardPage> {
               const SizedBox(width: 10),
               _buildActionItem(
                 icon: Icons.edit_outlined,
-                label: '编辑',
+                label: l10n.edit,
                 onTap: _goToEditPage,
               ),
             ],
@@ -1029,7 +1032,7 @@ class _CardPageState extends State<CardPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    '模板负责控制背景与排版。编辑页将负责头像、展示字段和个性化内容设置。分享负责将名片信息以不同形式分享给他人。',
+                    l10n.templateEditShareHint,
                     style: const TextStyle(
                       fontSize: 13,
                       color: Color(0xFF6B7280),

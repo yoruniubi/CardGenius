@@ -252,7 +252,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get close => '关闭';
 
   @override
-  String get basicInfo => '基本信息';
+  String get basicInfo => '基础信息';
 
   @override
   String get saveCard => '保存名片';
@@ -296,4 +296,204 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get clickPlusToImport => '点击右下角加号导入名片';
+
+  @override
+  String get stepOneSelectBackground => '第一步：选择背景';
+
+  @override
+  String get stepTwoSelectLayout => '第二步：选择布局';
+
+  @override
+  String get backgroundStepDescription => '可选择图片背景、纯色背景，或上传你自己的背景图片。';
+
+  @override
+  String get layoutStepDescription => '布局决定姓名、公司与联系方式的排布方式。';
+
+  @override
+  String get applyStyle => '应用样式';
+
+  @override
+  String get imageBackground1 => '图片背景 1';
+
+  @override
+  String get imageBackground2 => '图片背景 2';
+
+  @override
+  String get imageBackground3 => '图片背景 3';
+
+  @override
+  String get imageBackground4 => '图片背景 4';
+
+  @override
+  String get solidBlue => '纯色蓝';
+
+  @override
+  String get darkGray => '深色灰';
+
+  @override
+  String get lightGreen => '浅绿色';
+
+  @override
+  String get lightGray => '浅灰色';
+
+  @override
+  String get customBackgroundSelected => '已选自定义背景';
+
+  @override
+  String get layoutClassic => '经典商务型';
+
+  @override
+  String get layoutClassicDesc => '左上主信息，右上头像，下方纵向展示联系方式';
+
+  @override
+  String get layoutCenter => '居中简约型';
+
+  @override
+  String get layoutCenterDesc => '以中轴线排版，适合简洁个人名片展示';
+
+  @override
+  String get layoutBottomBar => '底栏信息型';
+
+  @override
+  String get layoutBottomBarDesc => '上方展示身份信息，下方横向集中展示联系方式';
+
+  @override
+  String get editDigitalCard => '编辑电子名片';
+
+  @override
+  String get realtimePreview => '实时预览';
+
+  @override
+  String get avatar => '头像';
+
+  @override
+  String get avatarUploadHint => '上传后可在名片预览中实时查看头像效果。';
+
+  @override
+  String get upload => '上传';
+
+  @override
+  String get contactInfo => '联系方式';
+
+  @override
+  String get displayContent => '展示内容';
+
+  @override
+  String get showPhone => '显示电话';
+
+  @override
+  String get showEmail => '显示邮箱';
+
+  @override
+  String get showAddress => '显示地址';
+
+  @override
+  String get showWebsite => '显示网站';
+
+  @override
+  String get showAvatar => '显示头像';
+
+  @override
+  String get sampleAddress => '示例详细地址';
+
+  @override
+  String get sourceImage => '来源图像';
+
+  @override
+  String get sourceImageHint => '用于核对 OCR 识别结果，点击可重新选择图片。';
+
+  @override
+  String get coreInfo => '核心信息';
+
+  @override
+  String get general => '通用';
+
+  @override
+  String get recognitionEngine => '识别引擎';
+
+  @override
+  String get ocrEngineReadyDescription => '识别引擎已初始化，可正常使用名片识别';
+
+  @override
+  String get ocrEngineNotReadyDescription => '识别引擎尚未就绪，请稍后重试';
+
+  @override
+  String get notReady => '未就绪';
+
+  @override
+  String get aboutAppSection => '关于应用';
+
+  @override
+  String get currentVersion => '当前安装版本';
+
+  @override
+  String get aboutThisApp => '关于本应用';
+
+  @override
+  String get viewAppIntro => '查看应用简介与功能说明';
+
+  @override
+  String get appIntroDescription =>
+      '一款基于 Flutter 的智能名片识别与电子名片管理应用，支持 OCR 识别、模板展示、二维码/链接导入等能力。';
+
+  @override
+  String get gotIt => '知道了';
+
+  @override
+  String get completeDigitalCardInfoFirst => '请先完善你的电子名片信息';
+
+  @override
+  String get shareCardTitle => '分享名片';
+
+  @override
+  String get qrShare => '二维码分享';
+
+  @override
+  String get qrShareDescription => '生成二维码，对方使用名片智造扫码即可直接导入';
+
+  @override
+  String get textShare => '文字信息分享';
+
+  @override
+  String get textShareDescription => '以文字链接形式分享名片信息，复制到浏览器中打开即可导入';
+
+  @override
+  String get imageShare => '图片分享';
+
+  @override
+  String get imageShareDescription => '将当前电子名片导出为图片后分享';
+
+  @override
+  String get scanToImportDirectly => '使用名片智造扫一扫即可直接导入';
+
+  @override
+  String get edit => '编辑';
+
+  @override
+  String get completeDigitalCardInfoPrompt => '先完善你的电子名片信息';
+
+  @override
+  String get completeDigitalCardInfoHint => '后续可在编辑页中添加头像、调整展示字段，并选择不同模板与背景风格。';
+
+  @override
+  String get cardManagementDescription => '用于展示、分享和管理你的数字名片形象。';
+
+  @override
+  String get templateEditShareHint =>
+      '模板负责控制背景与排版。编辑页将负责头像、展示字段和个性化内容设置。分享负责将名片信息以不同形式分享给他人。';
+
+  @override
+  String get cameraImportDescription => '拍摄并自动裁切名片后识别联系人信息';
+
+  @override
+  String get galleryImportDescription => '从相册选择已有名片图片进行识别';
+
+  @override
+  String get manualInputDescription => '不识别图片，直接手动新增联系人';
+
+  @override
+  String get savedCards => '已保存名片';
+
+  @override
+  String get scan => '扫一扫';
 }

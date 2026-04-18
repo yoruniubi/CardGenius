@@ -182,7 +182,7 @@ class _EditorPageState extends State<EditorPage> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
-                _SectionLabel(title: '来源图像'),
+                _SectionLabel(title: l10n.sourceImage),
                 const SizedBox(height: 8),
                 _Panel(
                   padding: const EdgeInsets.all(12),
@@ -229,7 +229,7 @@ class _EditorPageState extends State<EditorPage> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        '用于核对 OCR 识别结果，点击可重新选择图片。',
+                        l10n.sourceImageHint,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -240,7 +240,7 @@ class _EditorPageState extends State<EditorPage> {
                 ),
 
                 const SizedBox(height: 24),
-                _SectionLabel(title: '核心信息'),
+                _SectionLabel(title: l10n.coreInfo),
                 const SizedBox(height: 8),
                 _Panel(
                   padding: const EdgeInsets.all(16),
@@ -271,7 +271,7 @@ class _EditorPageState extends State<EditorPage> {
                 ),
 
                 const SizedBox(height: 24),
-                _SectionLabel(title: '联系方式'),
+                _SectionLabel(title: l10n.contactInfo),
                 const SizedBox(height: 8),
                 _Panel(
                   padding: const EdgeInsets.all(16),
@@ -364,7 +364,7 @@ class _EditorPageState extends State<EditorPage> {
                 // ),
 
                 const SizedBox(height: 24),
-                _SectionLabel(title: '备注'),
+                _SectionLabel(title: l10n.notes),
                 const SizedBox(height: 8),
                 _Panel(
                   padding: const EdgeInsets.all(16),

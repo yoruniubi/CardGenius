@@ -23,66 +23,70 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
   static const String _layoutKey = 'template_selected_layout_id';
   static const String _customBgKey = 'template_custom_background_path';
 
-  final List<_BackgroundOption> _backgroundOptions = [
-    _BackgroundOption(
-      id: 'bg_asset_1',
-      name: '图片背景 1',
-      assetPath: 'assets/1.png',
-    ),
-    _BackgroundOption(
-      id: 'bg_asset_2',
-      name: '图片背景 2',
-      assetPath: 'assets/2.png',
-    ),
-    _BackgroundOption(
-      id: 'bg_asset_3',
-      name: '图片背景 3',
-      assetPath: 'assets/3.png',
-    ),
-    _BackgroundOption(
-      id: 'bg_asset_4',
-      name:'图片背景 4',
-      assetPath: 'assets/4.png',
-    ),
-    _BackgroundOption(
-      id: 'bg_color_blue',
-      name: '纯色蓝',
-      color: const Color(0xFF1677FF),
-    ),
-    _BackgroundOption(
-      id: 'bg_color_dark',
-      name: '深色灰',
-      color: const Color(0xFF111827),
-    ),
-    _BackgroundOption(
-      id: 'bg_color_green',
-      name: '浅绿色',
-      color: const Color(0xFFD1FAE5),
-    ),
-    _BackgroundOption(
-      id: 'bg_color_gray', 
-      name: '浅灰色',
-      color: const Color(0xFFE5E7EB)
-    )
-  ];
+  List<_BackgroundOption> _backgroundOptions(AppLocalizations l10n) {
+    return [
+      _BackgroundOption(
+        id: 'bg_asset_1',
+        name: l10n.imageBackground1,
+        assetPath: 'assets/1.png',
+      ),
+      _BackgroundOption(
+        id: 'bg_asset_2',
+        name: l10n.imageBackground2,
+        assetPath: 'assets/2.png',
+      ),
+      _BackgroundOption(
+        id: 'bg_asset_3',
+        name: l10n.imageBackground3,
+        assetPath: 'assets/3.png',
+      ),
+      _BackgroundOption(
+        id: 'bg_asset_4',
+        name: l10n.imageBackground4,
+        assetPath: 'assets/4.png',
+      ),
+      _BackgroundOption(
+        id: 'bg_color_blue',
+        name: l10n.solidBlue,
+        color: const Color(0xFF1677FF),
+      ),
+      _BackgroundOption(
+        id: 'bg_color_dark',
+        name: l10n.darkGray,
+        color: const Color(0xFF111827),
+      ),
+      _BackgroundOption(
+        id: 'bg_color_green',
+        name: l10n.lightGreen,
+        color: const Color(0xFFD1FAE5),
+      ),
+      _BackgroundOption(
+        id: 'bg_color_gray',
+        name: l10n.lightGray,
+        color: const Color(0xFFE5E7EB)
+      )
+    ];
+  }
 
-  final List<_LayoutOption> _layoutOptions = const [
-    _LayoutOption(
-      id: 'layout_classic',
-      name: '经典商务型',
-      description: '左上主信息，右上头像，下方纵向展示联系方式',
-    ),
-    _LayoutOption(
-      id: 'layout_center',
-      name: '居中简约型',
-      description: '以中轴线排版，适合简洁个人名片展示',
-    ),
-    _LayoutOption(
-      id: 'layout_bottom_bar',
-      name: '底栏信息型',
-      description: '上方展示身份信息，下方横向集中展示联系方式',
-    ),
-  ];
+  List<_LayoutOption> _getLayoutOptions(AppLocalizations l10n) {
+    return [
+      _LayoutOption(
+        id: 'layout_classic',
+        name: l10n.layoutClassic,
+        description: l10n.layoutClassicDesc,
+      ),
+      _LayoutOption(
+        id: 'layout_center',
+        name: l10n.layoutCenter,
+        description: l10n.layoutCenterDesc,
+      ),
+      _LayoutOption(
+        id: 'layout_bottom_bar',
+        name: l10n.layoutBottomBar,
+        description: l10n.layoutBottomBarDesc,
+      ),
+    ];
+  }
 
   @override
   void initState() {
@@ -104,7 +108,12 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
         _selectedBackgroundId = savedBg;
       }
       if (savedLayout != null && savedLayout.isNotEmpty) {
-        final bool layoutExists = _layoutOptions.any((e) => e.id == savedLayout);
+        const layoutIds = {
+          'layout_classic',
+          'layout_center',
+          'layout_bottom_bar',
+        };
+        final bool layoutExists = layoutIds.contains(savedLayout);
         _selectedLayoutId = layoutExists ? savedLayout : 'layout_classic';
       }
       if (savedCustomBg != null && savedCustomBg.isNotEmpty) {
@@ -218,7 +227,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
           ),
           TextElement(
             tag: 'address',
-            content: '示例详细地址',
+            content: l10n.sampleAddress,
             x: startX + iconSize + iconGap,
             y: contactY + lineGap * 2 - 2,
             fontSize: 11,
@@ -416,7 +425,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
           ),
           TextElement(
             tag: 'address',
-            content: '示例详细地址',
+            content: l10n.sampleAddress,
             x: 160,
             y: 152,
             fontSize: 11,
@@ -473,13 +482,16 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
   Future<void> _applyTemplate() async {
     final l10n = AppLocalizations.of(context)!;
 
+    final backgroundOptions = _backgroundOptions(l10n);
+    final layoutOptions = _getLayoutOptions(l10n);
+
     final selectedBg = _selectedBackgroundId == 'bg_custom'
         ? _BackgroundOption(
             id: 'bg_custom',
-            name: '自定义背景',
+            name: l10n.customBackground,
             filePath: _customBackgroundPath,
           )
-        : _backgroundOptions.firstWhere((e) => e.id == _selectedBackgroundId);
+        : backgroundOptions.firstWhere((e) => e.id == _selectedBackgroundId);
 
     final bool useLightText =
         selectedBg.color != null &&
@@ -488,7 +500,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     final template = BusinessCardTemplate(
       id: '${selectedBg.id}_${_selectedLayoutId}',
       name:
-          '${selectedBg.name} · ${_layoutOptions.firstWhere((e) => e.id == _selectedLayoutId).name}',
+          '${selectedBg.name} · ${layoutOptions.firstWhere((e) => e.id == _selectedLayoutId).name}',
       previewImagePath: selectedBg.filePath ?? selectedBg.assetPath,
       backgroundColorValue: selectedBg.color?.value,
       elements: _buildLayout(l10n, _selectedLayoutId, useLightText),
@@ -870,7 +882,9 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
+    final backgroundOptions = _backgroundOptions(l10n);
+    final layoutOptions = _getLayoutOptions(l10n);
+ 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
       appBar: AppBar(
@@ -883,18 +897,18 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
-          const Text(
-            '第一步：选择背景',
-            style: TextStyle(
+          Text(
+            l10n.stepOneSelectBackground,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: Color(0xFF111827),
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            '可选择图片背景、纯色背景，或上传你自己的背景图片。',
-            style: TextStyle(
+          Text(
+            l10n.backgroundStepDescription,
+            style: const TextStyle(
               fontSize: 13,
               color: Color(0xFF6B7280),
               height: 1.5,
@@ -909,7 +923,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             children: [
-              ..._backgroundOptions.map(_buildBackgroundItem),
+              ...backgroundOptions.map(_buildBackgroundItem),
               GestureDetector(
                 onTap: _pickCustomBackground,
                 child: AnimatedContainer(
@@ -966,7 +980,9 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
                         child: Text(
-                          _customBackgroundPath == null ? '上传背景' : '已选自定义背景',
+                          _customBackgroundPath == null
+                              ? l10n.uploadBackground
+                              : l10n.customBackgroundSelected,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -983,25 +999,25 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             ],
           ),
           const SizedBox(height: 28),
-          const Text(
-            '第二步：选择布局',
-            style: TextStyle(
+          Text(
+            l10n.stepTwoSelectLayout,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: Color(0xFF111827),
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            '布局决定姓名、公司与联系方式的排布方式。',
-            style: TextStyle(
+          Text(
+            l10n.layoutStepDescription,
+            style: const TextStyle(
               fontSize: 13,
               color: Color(0xFF6B7280),
               height: 1.5,
             ),
           ),
           const SizedBox(height: 12),
-          ..._layoutOptions.map((e) {
+          ...layoutOptions.map((e) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: _buildLayoutItem(e),
@@ -1017,7 +1033,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           child: AntdButton(
             onTap: _applyTemplate,
-            child: const Text('应用样式'),
+            child: Text(l10n.applyStyle),
           ),
         ),
       ),

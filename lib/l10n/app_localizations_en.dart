@@ -302,4 +302,223 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clickPlusToImport => 'Click the + button to import a card';
+
+  @override
+  String get stepOneSelectBackground => 'Step 1: Select Background';
+
+  @override
+  String get stepTwoSelectLayout => 'Step 2: Select Layout';
+
+  @override
+  String get backgroundStepDescription =>
+      'Choose an image background, solid color, or upload your own background image.';
+
+  @override
+  String get layoutStepDescription =>
+      'Layout determines how name, company, and contact info are arranged.';
+
+  @override
+  String get applyStyle => 'Apply Style';
+
+  @override
+  String get imageBackground1 => 'Image Background 1';
+
+  @override
+  String get imageBackground2 => 'Image Background 2';
+
+  @override
+  String get imageBackground3 => 'Image Background 3';
+
+  @override
+  String get imageBackground4 => 'Image Background 4';
+
+  @override
+  String get solidBlue => 'Solid Blue';
+
+  @override
+  String get darkGray => 'Dark Gray';
+
+  @override
+  String get lightGreen => 'Light Green';
+
+  @override
+  String get lightGray => 'Light Gray';
+
+  @override
+  String get customBackgroundSelected => 'Custom Background Selected';
+
+  @override
+  String get layoutClassic => 'Classic Business';
+
+  @override
+  String get layoutClassicDesc =>
+      'Main info top-left, avatar top-right, contacts displayed vertically below';
+
+  @override
+  String get layoutCenter => 'Centered Minimalist';
+
+  @override
+  String get layoutCenterDesc =>
+      'Centered layout, ideal for clean personal business cards';
+
+  @override
+  String get layoutBottomBar => 'Bottom Bar Info';
+
+  @override
+  String get layoutBottomBarDesc =>
+      'Identity info at top, contacts displayed horizontally at bottom';
+
+  @override
+  String get editDigitalCard => 'Edit Digital Card';
+
+  @override
+  String get realtimePreview => 'Real-time Preview';
+
+  @override
+  String get avatar => 'Avatar';
+
+  @override
+  String get avatarUploadHint =>
+      'Upload to see avatar effect in the card preview in real-time.';
+
+  @override
+  String get upload => 'Upload';
+
+  @override
+  String get contactInfo => 'Contact Info';
+
+  @override
+  String get displayContent => 'Display Content';
+
+  @override
+  String get showPhone => 'Show Phone';
+
+  @override
+  String get showEmail => 'Show Email';
+
+  @override
+  String get showAddress => 'Show Address';
+
+  @override
+  String get showWebsite => 'Show Website';
+
+  @override
+  String get showAvatar => 'Show Avatar';
+
+  @override
+  String get sampleAddress => 'Sample Address';
+
+  @override
+  String get sourceImage => 'Source Image';
+
+  @override
+  String get sourceImageHint =>
+      'Used to verify OCR results. Tap to choose another image.';
+
+  @override
+  String get coreInfo => 'Core Info';
+
+  @override
+  String get general => 'General';
+
+  @override
+  String get recognitionEngine => 'Recognition Engine';
+
+  @override
+  String get ocrEngineReadyDescription =>
+      'The recognition engine is initialized and ready for business card recognition.';
+
+  @override
+  String get ocrEngineNotReadyDescription =>
+      'The recognition engine is not ready yet. Please try again later.';
+
+  @override
+  String get notReady => 'Not Ready';
+
+  @override
+  String get aboutAppSection => 'About App';
+
+  @override
+  String get currentVersion => 'Current Installed Version';
+
+  @override
+  String get aboutThisApp => 'About This App';
+
+  @override
+  String get viewAppIntro => 'View app introduction and feature overview';
+
+  @override
+  String get appIntroDescription =>
+      'An intelligent business card recognition and digital card management app based on Flutter, supporting OCR, template display, and QR/link import.';
+
+  @override
+  String get gotIt => 'Got it';
+
+  @override
+  String get completeDigitalCardInfoFirst =>
+      'Please complete your digital business card information first';
+
+  @override
+  String get shareCardTitle => 'Share Card';
+
+  @override
+  String get qrShare => 'QR Code Share';
+
+  @override
+  String get qrShareDescription =>
+      'Generate a QR code so others can scan it with CardGenius to import directly';
+
+  @override
+  String get textShare => 'Text Share';
+
+  @override
+  String get textShareDescription =>
+      'Share card information as a text link, which can be imported by opening it in a browser';
+
+  @override
+  String get imageShare => 'Image Share';
+
+  @override
+  String get imageShareDescription =>
+      'Export the current digital business card as an image and share it';
+
+  @override
+  String get scanToImportDirectly => 'Scan with CardGenius to import directly';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get completeDigitalCardInfoPrompt =>
+      'Complete your digital business card information first';
+
+  @override
+  String get completeDigitalCardInfoHint =>
+      'Later you can add an avatar, adjust displayed fields, and choose different templates and background styles on the edit page.';
+
+  @override
+  String get cardManagementDescription =>
+      'Used to display, share, and manage your digital business card presence.';
+
+  @override
+  String get templateEditShareHint =>
+      'Templates control background and layout. The edit page controls avatar, displayed fields, and personalized content settings. Share lets you send your card information to others in different formats.';
+
+  @override
+  String get cameraImportDescription =>
+      'Capture and auto-crop a business card to recognize contact information';
+
+  @override
+  String get galleryImportDescription =>
+      'Choose an existing business card image from the gallery for recognition';
+
+  @override
+  String get manualInputDescription =>
+      'Skip image recognition and add a contact manually';
+
+  @override
+  String get savedCards => 'Saved Cards';
+
+  @override
+  String get scan => 'Scan';
 }

@@ -75,7 +75,7 @@ class _OcrPageState extends State<OcrPage> {
           debugPrint('OCR Plugin exception: $e');
         }
       } else {
-        finalRecognizedText = 'OCR Plugin does not support Web platform.';
+        finalRecognizedText = AppLocalizations.of(context)!.ocrWebNotSupported;
         debugPrint(finalRecognizedText);
       }
 
@@ -137,7 +137,7 @@ class _OcrPageState extends State<OcrPage> {
           debugPrint('OCR Plugin exception: $e');
         }
       } else {
-        finalRecognizedText = 'OCR Plugin does not support Web platform.';
+        finalRecognizedText = AppLocalizations.of(context)!.ocrWebNotSupported;
         debugPrint(finalRecognizedText);
       }
 

@@ -54,7 +54,7 @@ class _SettingsBody extends StatelessWidget {
       children: [
         const SizedBox(height: 18),
         _SettingsSection(
-          title: '通用',
+          title: l10n.general,
           child: Column(
             children: [
               _ActionTile(
@@ -68,7 +68,7 @@ class _SettingsBody extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         _SettingsSection(
-          title: '识别引擎',
+          title: l10n.recognitionEngine,
           child: AnimatedBuilder(
             animation: OcrService.instance,
             builder: (context, _) {
@@ -78,13 +78,10 @@ class _SettingsBody extends StatelessWidget {
                   _SettingTile(
                     icon: Icons.memory_outlined,
                     title: l10n.ocrEngineStatus,
-                    subtitle: isOcrReady
-                        ? '识别引擎已初始化，可正常使用名片识别'
-                        : '识别引擎尚未就绪，请稍后重试',
                     trailing: _StatusBadge(
                       text: isOcrReady
                           ? '${l10n.ready} · PaddleOCR'
-                          : 'Not Ready',
+                          : l10n.notReady,
                       isReady: isOcrReady,
                     ),
                   ),
@@ -95,13 +92,13 @@ class _SettingsBody extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         _SettingsSection(
-          title: '关于应用',
+          title: l10n.aboutAppSection,
           child: Column(
             children: [
               _SettingTile(
                 icon: Icons.info_outline,
-                title: '软件版本',
-                subtitle: '当前安装版本',
+                title: l10n.softwareVersion,
+                subtitle: l10n.currentVersion,
                 trailing: const Text(
                   'v1.0.0',
                   style: TextStyle(
@@ -114,8 +111,8 @@ class _SettingsBody extends StatelessWidget {
               const Divider(height: 1),
               _ActionTile(
                 icon: Icons.help_outline,
-                title: '关于本应用',
-                subtitle: '查看应用简介与功能说明',
+                title: l10n.aboutThisApp,
+                subtitle: l10n.viewAppIntro,
                 onTap: () => _showAboutModal(context),
               ),
             ],
@@ -261,19 +258,19 @@ class _SettingsBody extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              const Text(
-                '名片智造',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.appTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                '一款基于 Flutter 的智能名片识别与电子名片管理应用，支持 OCR 识别、模板展示、二维码/链接导入等能力。',
+              Text(
+                AppLocalizations.of(context)!.appIntroDescription,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   color: Color(0xFF6B7280),
                   height: 1.6,
@@ -283,7 +280,7 @@ class _SettingsBody extends StatelessWidget {
               AntdButton(
                 block: true,
                 onTap: () => Navigator.pop(context),
-                child: const Text('知道了'),
+                child: Text(AppLocalizations.of(context)!.gotIt),
               ),
             ],
           ),
@@ -410,13 +407,13 @@ class _SettingsSection extends StatelessWidget {
 class _SettingTile extends StatelessWidget {
   const _SettingTile({
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.trailing,
     required this.icon,
   });
 
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final Widget trailing;
   final IconData icon;
 
@@ -455,15 +452,17 @@ class _SettingTile extends StatelessWidget {
                       color: Color(0xFF111827),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6B7280),
-                      height: 1.45,
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF6B7280),
+                        height: 1.45,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
