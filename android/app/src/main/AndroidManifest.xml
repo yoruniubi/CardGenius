@@ -8,7 +8,7 @@
     <application
         android:label="名片智造"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_true">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"

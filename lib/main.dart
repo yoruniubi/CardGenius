@@ -63,6 +63,7 @@ class _MyAppState extends State<MyApp> {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         scaffoldMessengerKey: scaffoldMessengerKey,
+        navigatorObservers: [AntdLayer.observer],
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(
@@ -85,7 +86,7 @@ class _MyAppState extends State<MyApp> {
           '/testPage': (context) => const OcrTestPage(),
         },
         initialRoute: '/',
-      ),
+      )
     );
   }
 }
@@ -113,11 +114,12 @@ class _HomePageState extends State<HomePage> {
   AppLinks? _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
   String? _lastHandledLink;
+  DateTime? _lastHandledAt;
 
   @override
   void initState() {
     super.initState();
-    // _ocrInitFuture = _initializeOcrPlugin();
+    _initOcrEngine();
     _loadBusinessCards();
     _filteredBusinessCards = _businessCards;
     _searchController.addListener(_onSearchChanged);
@@ -127,44 +129,51 @@ class _HomePageState extends State<HomePage> {
     final link = ShareLinkService.buildLink(card);
     Share.share(link);
   }
-  void _showShareQrDialog(BusinessCard card) {
+  Future<void> _initOcrEngine() async {
+    if (kIsWeb) return;
+
+    try {
+      await OcrService.instance.ensureInitialized();
+    } catch (e) {
+      debugPrint('OCR 初始化失败: $e');
+    }
+  }
+  void _showQrShareDialog(BusinessCard card) {
     final link = ShareLinkService.buildLink(card);
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('二维码分享'),
-        content: SizedBox(
-          width: 260,
-          height: 300,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              QrImageView(
-                data: link,
-                version: QrVersions.auto,
-                size: 220,
-                backgroundColor: Colors.white,
+    AntdModal.show(
+      title: const Text('二维码分享'),
+      content: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            QrImageView(
+              data: link,
+              version: QrVersions.auto,
+              size: 220,
+              backgroundColor: Colors.white,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '使用名片智造扫一扫即可直接导入',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: Color(0xFF6B7280),
               ),
-              const SizedBox(height: 12),
-              const Text(
-                '使用名片智造扫一扫即可直接导入',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
-          ),
-        ],
       ),
+      actions: [
+        AntdModalAction(
+          title: const Text('关闭'),
+          onTap: (close) async {
+            await close();
+          },
+        ),
+      ],
     );
   }
   int _findExistingCardIndex(BusinessCard incoming) {
@@ -237,35 +246,105 @@ class _HomePageState extends State<HomePage> {
 
   void _deleteBusinessCard(BusinessCard card) {
     final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deleteConfirmTitle),
-        content: Text(l10n.deleteConfirmContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.delete_outline,
+                size: 34,
+                color: Color(0xFFDC2626),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.deleteConfirmTitle,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF111827),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.deleteConfirmContent,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF6B7280),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1677FF),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(44),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Text(
+                        l10n.cancel,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+
+                        setState(() {
+                          _businessCards.removeWhere((c) => c.id == card.id);
+                          _filterCards(_searchController.text);
+                        });
+
+                        _saveBusinessCards();
+
+                        scaffoldMessengerKey.currentState?.showSnackBar(
+                          SnackBar(content: Text(l10n.cardDeleted)),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFDC2626),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(44),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Text(
+                        l10n.delete,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _businessCards.removeWhere((c) => c.id == card.id);
-                _filterCards(_searchController.text);
-              });
-              _saveBusinessCards();
-              scaffoldMessengerKey.currentState?.showSnackBar(
-                SnackBar(content: Text(l10n.cardDeleted)),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(l10n.delete),
-          ),
-        ],
+        ),
       ),
     );
-  }
+}
 
   void _shareBusinessCard(BusinessCard card) {
     showModalBottomSheet(
@@ -304,7 +383,7 @@ class _HomePageState extends State<HomePage> {
                   subtitle: '生成二维码，对方使用名片智造扫码即可直接导入',
                   onTap: () {
                     Navigator.pop(context);
-                    _showShareQrDialog(card);
+                    _showQrShareDialog(card);
                   },
                 ),
                 _ActionSheetItem(
@@ -408,7 +487,13 @@ class _HomePageState extends State<HomePage> {
   }
   void _handleIncomingLink(String rawLink) async {
     if (!mounted || rawLink.trim().isEmpty) return;
-    if (_lastHandledLink == rawLink) return;
+
+    final now = DateTime.now();
+    final isSameLink = _lastHandledLink == rawLink;
+    final isTooSoon = _lastHandledAt != null &&
+        now.difference(_lastHandledAt!).inSeconds < 2;
+
+    if (isSameLink && isTooSoon) return;
 
     final card = ShareLinkService.tryParseCard(rawLink);
     if (card == null) {
@@ -419,6 +504,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     _lastHandledLink = rawLink;
+    _lastHandledAt = now;
 
     final existingIndex = _findExistingCardIndex(card);
     final editingCard = existingIndex >= 0

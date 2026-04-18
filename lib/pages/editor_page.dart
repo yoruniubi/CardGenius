@@ -374,6 +374,7 @@ class _EditorPageState extends State<EditorPage> {
                     controller: _notesController,
                     maxLines: 4,
                     showLabel: false,
+                    icon: Icons.sticky_note_2_outlined,
                   ),
                 ),
               ],
@@ -406,6 +407,7 @@ class _EditorPageState extends State<EditorPage> {
         TextField(
           controller: controller,
           maxLines: maxLines,
+          minLines: 1,
           decoration: InputDecoration(
             hintText: hint,
             filled: true,

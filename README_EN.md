@@ -4,27 +4,29 @@
 
 English | [简体中文](./README.md)
 
-**CardGenius** is an intelligent business card recognition and management tool built with Flutter. Leveraging advanced OCR technology, it helps users quickly extract structured information from physical business cards and provides convenient features for storage, editing, sharing, and exporting.
+**CardGenius** is an intelligent business card recognition and management app built with Flutter. Powered by OCR, it helps users extract structured information from physical cards and provides complete workflows for editing, template styling, sharing, and importing.
 
 ## 🚀 Key Features
 
--   **🔍 Smart Text Extraction (OCR)**: Integrated with PaddleOCR, supporting text recognition from both gallery images and direct camera captures.
--   **📇 Card Management**: Full CRUD (Create, Read, Update, Delete) support to easily manage your digital card collection.
--   **📄 Document Scanning**: Built-in document scanner to automatically optimize business card photos for better recognition.
--   **🎨 Templates & Export**: Multiple card templates available. Export your card information as images or share them directly.
--   **📲 Scan to Save**: Automatically generates contact QR codes. Scan to quickly save contact details to your phone's address book.
--   **🌐 Multi-language Support**: Supports both Simplified Chinese and English, adapting to system language settings.
--   **✨ Modern UI Design**: Built with `shadcn_ui` for a clean, beautiful, and intuitive user experience.
+-   **🔍 Smart OCR Extraction**: Integrated with PaddleOCR (via custom `ocr_plugin`), supporting recognition from camera captures and gallery images.
+-   **📇 Card Management**: Full CRUD support for digital business cards, with local persistence for quick daily management.
+-   **📄 Document Scanning & Import**: Built-in document scanning (`cunning_document_scanner`) to improve card image quality before recognition.
+-   **🎨 Template Editing & Personalization**: Multiple templates, customizable layout styles, and custom background image import.
+-   **🔗 Flexible Sharing**: Share via QR code, text link, or exported card image.
+-   **📲 QR Import**: Built-in scanning (`mobile_scanner`) to import shared card links directly.
+-   **🌐 Multi-language Support**: Supports Simplified Chinese and English, including “follow system” locale behavior.
+-   **✨ Modern Mobile UI**: Built with `antd_flutter_mobile` for a consistent and clean mobile interaction experience.
 
 ## 🛠️ Tech Stack
 
 -   **Framework**: [Flutter](https://flutter.dev/)
--   **UI Components**: [Shadcn UI (Flutter)](https://shadcn-ui.com/)
+-   **UI Components**: `antd_flutter_mobile`
 -   **OCR Engine**: PaddleOCR (integrated via custom `ocr_plugin`)
--   **Scanning**: `cunning_document_scanner`
+-   **Scanning**: `cunning_document_scanner`, `mobile_scanner`
+-   **Share & QR**: `share_plus`, `qr_flutter`, `app_links`
 -   **Storage**: `shared_preferences`
--   **State Management**: Provider (LocaleProvider)
--   **Icons**: Lucide Icons
+-   **State Management**: Provider (`LocaleProvider`)
+-   **Image & File**: `image_picker`, `file_picker`, `screenshot`
 
 ## 📦 Getting Started
 
@@ -45,53 +47,3 @@ English | [简体中文](./README.md)
     ```bash
     flutter run
     ```
-
-
-# CardGenius
-
-![logo](./assets/logo.png)
-
-English | [简体中文](./README.md)
-
-**CardGenius** is an intelligent business card recognition and management tool built with Flutter. Leveraging advanced OCR technology, it helps users quickly extract structured information from physical business cards and provides convenient features for storage, editing, sharing, and exporting.
-
-## 🚀 Key Features
-
--   **🔍 Smart Text Extraction (OCR)**: Integrated with PaddleOCR, supporting text recognition from both gallery images and direct camera captures.
--   **📇 Card Management**: Full CRUD (Create, Read, Update, Delete) support to easily manage your digital card collection.
--   **📄 Document Scanning**: Built-in document scanner to automatically optimize business card photos for better recognition.
--   **🎨 Templates & Export**: Multiple card templates available. Export your card information as images or share them directly.
--   **📲 Scan to Save**: Automatically generates contact QR codes. Scan to quickly save contact details to your phone's address book.
--   **🌐 Multi-language Support**: Supports both Simplified Chinese and English, adapting to system language settings.
--   **✨ Modern UI Design**: Built with `shadcn_ui` for a clean, beautiful, and intuitive user experience.
-
-## 🛠️ Tech Stack
-
--   **Framework**: [Flutter](https://flutter.dev/)
--   **UI Components**: [Shadcn UI (Flutter)](https://shadcn-ui.com/)
--   **OCR Engine**: PaddleOCR (integrated via custom `ocr_plugin`)
--   **Scanning**: `cunning_document_scanner`
--   **Storage**: `shared_preferences`
--   **State Management**: Provider (LocaleProvider)
--   **Icons**: Lucide Icons
-
-## 📦 Getting Started
-
-### Prerequisites
--   Flutter SDK: `^3.8.1`
--   Android SDK / iOS Xcode (depending on target platform)
-
-### Installation
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/your-repo/business_card_ocr.git
-    ```
-2.  Install dependencies:
-    ```bash
-    flutter pub get
-    ```
-3.  Run the application:
-    ```bash
-    flutter run
-    ```
-

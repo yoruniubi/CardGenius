@@ -16,7 +16,7 @@ class TemplateSelectionPage extends StatefulWidget {
 
 class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
   String _selectedBackgroundId = 'bg_asset_1';
-  String _selectedLayoutId = 'layout_left';
+  String _selectedLayoutId = 'layout_classic';
   String? _customBackgroundPath;
 
   static const String _bgKey = 'template_selected_background_id';
@@ -40,6 +40,11 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
       assetPath: 'assets/3.png',
     ),
     _BackgroundOption(
+      id: 'bg_asset_4',
+      name:'图片背景 4',
+      assetPath: 'assets/4.png',
+    ),
+    _BackgroundOption(
       id: 'bg_color_blue',
       name: '纯色蓝',
       color: const Color(0xFF1677FF),
@@ -54,23 +59,28 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
       name: '浅绿色',
       color: const Color(0xFFD1FAE5),
     ),
+    _BackgroundOption(
+      id: 'bg_color_gray', 
+      name: '浅灰色',
+      color: const Color(0xFFE5E7EB)
+    )
   ];
 
   final List<_LayoutOption> _layoutOptions = const [
     _LayoutOption(
-      id: 'layout_left',
-      name: '左上信息型',
-      description: '左上突出姓名和公司，下方展示联系方式',
+      id: 'layout_classic',
+      name: '经典商务型',
+      description: '左上主信息，右上头像，下方纵向展示联系方式',
     ),
     _LayoutOption(
       id: 'layout_center',
-      name: '居中简洁型',
-      description: '整体信息居中，更适合简约名片',
+      name: '居中简约型',
+      description: '以中轴线排版，适合简洁个人名片展示',
     ),
     _LayoutOption(
-      id: 'layout_split',
-      name: '左文右图型',
-      description: '左侧展示信息，右侧预留头像/图片区',
+      id: 'layout_bottom_bar',
+      name: '底栏信息型',
+      description: '上方展示身份信息，下方横向集中展示联系方式',
     ),
   ];
 
@@ -94,7 +104,8 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
         _selectedBackgroundId = savedBg;
       }
       if (savedLayout != null && savedLayout.isNotEmpty) {
-        _selectedLayoutId = savedLayout;
+        final bool layoutExists = _layoutOptions.any((e) => e.id == savedLayout);
+        _selectedLayoutId = layoutExists ? savedLayout : 'layout_classic';
       }
       if (savedCustomBg != null && savedCustomBg.isNotEmpty) {
         _customBackgroundPath = savedCustomBg;
@@ -123,125 +134,172 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     String layoutId,
     bool useLightText,
   ) {
-    final primaryTextColor = useLightText ? Colors.white : Colors.black;
+    const double cardWidth = 320;
+    // const double cardHeight = 200;
+
+    const double left = 22;
+    const double right = 22;
+    const double top = 22;
+    // const double bottom = 18;
+
+    const double avatarClassicSize = 60;
+    // const double avatarProfileSize = 78;
+    const double avatarCenterSize = 56;
+    const double avatarBottomBarSize = 54;
+
+    const double iconSize = 15;
+    const double iconGap = 8;
+    const double lineGap = 20;
+
+    final primaryTextColor =
+        useLightText ? Colors.white : const Color(0xFF111827);
     final secondaryTextColor =
-        useLightText ? const Color(0xFFE5E7EB) : Colors.black87;
+        useLightText ? const Color(0xFFE5E7EB) : const Color(0xFF4B5563);
     final helperTextColor =
         useLightText ? const Color(0xFFD1D5DB) : const Color(0xFF6B7280);
     final accentTextColor =
-        useLightText ? const Color(0xFFBFDBFE) : const Color(0xFF1677FF);
+        useLightText ? const Color(0xFFDBEAFE) : const Color(0xFF1677FF);
+
+    double centerTextX(double estimatedWidth) => (cardWidth - estimatedWidth) / 2;
+    double rightAvatarX(double size) => cardWidth - right - size;
+
+    List<CardElement> contactColumn({
+      required double startX,
+      required double startY,
+      bool includeAddress = false,
+      bool includeWebsite = true,
+    }) {
+      final double contactY = startY - 6;
+
+      final elements = <CardElement>[
+        IconElement(
+          tag: 'phone_icon',
+          icon: Icons.phone_outlined,
+          x: startX,
+          y: contactY,
+          size: iconSize,
+          color: helperTextColor,
+        ),
+        TextElement(
+          tag: 'phone',
+          content: '123-4567-8901',
+          x: startX + iconSize + iconGap,
+          y: contactY - 2,
+          fontSize: 12,
+          color: secondaryTextColor,
+        ),
+        IconElement(
+          tag: 'email_icon',
+          icon: Icons.email_outlined,
+          x: startX,
+          y: contactY + lineGap,
+          size: iconSize,
+          color: helperTextColor,
+        ),
+        TextElement(
+          tag: 'email',
+          content: 'example@mail.com',
+          x: startX + iconSize + iconGap,
+          y: contactY + lineGap - 2,
+          fontSize: 12,
+          color: secondaryTextColor,
+        ),
+      ];
+
+      if (includeAddress) {
+        elements.addAll([
+          IconElement(
+            tag: 'address_icon',
+            icon: Icons.location_on_outlined,
+            x: startX,
+            y: contactY + lineGap * 2,
+            size: iconSize,
+            color: helperTextColor,
+          ),
+          TextElement(
+            tag: 'address',
+            content: '示例详细地址',
+            x: startX + iconSize + iconGap,
+            y: contactY + lineGap * 2 - 2,
+            fontSize: 11,
+            color: helperTextColor,
+          ),
+          IconElement(
+            tag: 'website_icon',
+            icon: Icons.language_outlined,
+            x: startX,
+            y: contactY + lineGap * 3,
+            size: iconSize,
+            color: helperTextColor,
+          ),
+          TextElement(
+            tag: 'website',
+            content: 'www.example.com',
+            x: startX + iconSize + iconGap,
+            y: contactY + lineGap * 3 - 2,
+            fontSize: 11,
+            color: accentTextColor,
+          ),
+        ]);
+      } else if (includeWebsite) {
+        elements.addAll([
+          IconElement(
+            tag: 'website_icon',
+            icon: Icons.language_outlined,
+            x: startX,
+            y: contactY + lineGap * 2,
+            size: iconSize,
+            color: helperTextColor,
+          ),
+          TextElement(
+            tag: 'website',
+            content: 'www.example.com',
+            x: startX + iconSize + iconGap,
+            y: contactY + lineGap * 2 - 2,
+            fontSize: 11,
+            color: accentTextColor,
+          ),
+        ]);
+      }
+
+      return elements;
+    }
 
     switch (layoutId) {
       case 'layout_center':
+        const double contactX = 94;
+
         return [
           ImageElement(
             tag: 'avatar',
-            x: 122,
-            y: 16,
+            x: (cardWidth - avatarCenterSize) / 2,
+            y: 14,
             imageUrl: '',
-            width: 52,
-            height: 52,
+            width: avatarCenterSize,
+            height: avatarCenterSize,
           ),
           TextElement(
-            x: 108,
-            y: 74,
-            content: l10n.name,
             tag: 'name',
-            fontSize: 22,
-            isBold: true,
-            color: primaryTextColor,
-          ),
-          TextElement(
-            x: 96,
-            y: 102,
-            content: l10n.jobTitle,
-            tag: 'title',
-            fontSize: 13,
-            color: secondaryTextColor,
-          ),
-          TextElement(
-            x: 92,
-            y: 122,
-            content: l10n.company,
-            tag: 'company',
-            fontSize: 15,
-            isBold: true,
-            color: primaryTextColor,
-          ),
-          IconElement(
-            tag: 'phone_icon',
-            icon: Icons.phone_outlined,
-            x: 52,
-            y: 150,
-            size: 15,
-            color: helperTextColor,
-          ),
-          TextElement(
-            x: 74,
-            y: 148,
-            content: '123-4567-8901',
-            tag: 'phone',
-            fontSize: 12,
-            color: secondaryTextColor,
-          ),
-          IconElement(
-            tag: 'email_icon',
-            icon: Icons.email_outlined,
-            x: 52,
-            y: 170,
-            size: 15,
-            color: helperTextColor,
-          ),
-          TextElement(
-            x: 74,
-            y: 168,
-            content: 'example@mail.com',
-            tag: 'email',
-            fontSize: 12,
-            color: secondaryTextColor,
-          ),
-          IconElement(
-            tag: 'website_icon',
-            icon: Icons.language_outlined,
-            x: 52,
-            y: 190,
-            size: 15,
-            color: helperTextColor,
-          ),
-          TextElement(
-            x: 74,
-            y: 188,
-            content: 'www.example.com',
-            tag: 'website',
-            fontSize: 11,
-            color: accentTextColor,
-          ),
-        ];
-
-      case 'layout_split':
-        return [
-          TextElement(
-            x: 20,
-            y: 22,
             content: l10n.name,
-            tag: 'name',
-            fontSize: 22,
-            isBold: true,
-            color: primaryTextColor,
-          ),
-          TextElement(
-            x: 20,
-            y: 50,
-            content: l10n.jobTitle,
-            tag: 'title',
-            fontSize: 13,
-            color: secondaryTextColor,
-          ),
-          TextElement(
-            x: 20,
+            x: centerTextX(80),
             y: 72,
-            content: l10n.company,
+            fontSize: 22,
+            isBold: true,
+            color: primaryTextColor,
+          ),
+          TextElement(
+            tag: 'title',
+            content: l10n.jobTitle,
+            x: centerTextX(84),
+            y: 106,
+            fontSize: 13,
+            color: secondaryTextColor,
+          ),
+          TextElement(
             tag: 'company',
+            content: l10n.company,
+            x: centerTextX(106),
+            y: 130,
             fontSize: 15,
             isBold: true,
             color: primaryTextColor,
@@ -249,161 +307,164 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
           IconElement(
             tag: 'phone_icon',
             icon: Icons.phone_outlined,
-            x: 20,
-            y: 116,
-            size: 15,
-            color: helperTextColor,
-          ),
-          TextElement(
-            x: 42,
-            y: 114,
-            content: '123-4567-8901',
-            tag: 'phone',
-            fontSize: 12,
-            color: secondaryTextColor,
-          ),
-          IconElement(
-            tag: 'email_icon',
-            icon: Icons.email_outlined,
-            x: 20,
-            y: 136,
-            size: 15,
-            color: helperTextColor,
-          ),
-          TextElement(
-            x: 42,
-            y: 134,
-            content: 'example@mail.com',
-            tag: 'email',
-            fontSize: 12,
-            color: secondaryTextColor,
-          ),
-          IconElement(
-            tag: 'website_icon',
-            icon: Icons.language_outlined,
-            x: 20,
+            x: contactX,
             y: 156,
-            size: 15,
+            size: iconSize,
             color: helperTextColor,
           ),
           TextElement(
-            x: 42,
-            y: 154,
-            content: 'www.example.com',
-            tag: 'website',
-            fontSize: 11,
-            color: accentTextColor,
-          ),
-          ImageElement(
-            tag: 'avatar',
-            x: 214,
-            y: 26,
-            imageUrl: '',
-            width: 82,
-            height: 82,
+            tag: 'phone',
+            content: '123-4567-8901',
+            x: contactX + iconSize + iconGap,
+            y: 155,
+            fontSize: 12,
+            color: secondaryTextColor,
           ),
         ];
 
-      case 'layout_left':
-      default:
+      case 'layout_bottom_bar':
         return [
           TextElement(
-            x: 22,
-            y: 20,
-            content: l10n.name,
             tag: 'name',
+            content: l10n.name,
+            x: left,
+            y: 28,
             fontSize: 24,
             isBold: true,
             color: primaryTextColor,
           ),
           TextElement(
-            x: 22,
-            y: 52,
-            content: l10n.jobTitle,
             tag: 'title',
+            content: l10n.jobTitle,
+            x: left,
+            y: 58,
             fontSize: 13,
             color: secondaryTextColor,
           ),
           TextElement(
-            x: 22,
-            y: 74,
-            content: l10n.company,
             tag: 'company',
+            content: l10n.company,
+            x: left,
+            y: 80,
             fontSize: 16,
             isBold: true,
             color: primaryTextColor,
           ),
+          ImageElement(
+            tag: 'avatar',
+            x: rightAvatarX(avatarBottomBarSize),
+            y: 24,
+            imageUrl: '',
+            width: avatarBottomBarSize,
+            height: avatarBottomBarSize,
+          ),
           IconElement(
             tag: 'phone_icon',
             icon: Icons.phone_outlined,
-            x: 22,
-            y: 108,
-            size: 15,
+            x: 24,
+            y: 125,
+            size: 14,
             color: helperTextColor,
           ),
           TextElement(
-            x: 44,
-            y: 106,
-            content: '123-4567-8901',
             tag: 'phone',
-            fontSize: 12,
+            content: '123-4567-8901',
+            x: 44,
+            y: 125,
+            fontSize: 11,
             color: secondaryTextColor,
           ),
           IconElement(
             tag: 'email_icon',
             icon: Icons.email_outlined,
-            x: 22,
-            y: 128,
-            size: 15,
+            x: 140,
+            y: 125,
+            size: 14,
             color: helperTextColor,
           ),
           TextElement(
-            x: 44,
-            y: 126,
-            content: 'example@mail.com',
             tag: 'email',
-            fontSize: 12,
-            color: secondaryTextColor,
-          ),
-          IconElement(
-            tag: 'address_icon',
-            icon: Icons.location_on_outlined,
-            x: 22,
-            y: 148,
-            size: 15,
-            color: helperTextColor,
-          ),
-          TextElement(
-            x: 44,
-            y: 146,
-            content: '示例详细地址',
-            tag: 'address',
+            content: 'example@mail.com',
+            x: 160,
+            y: 125,
             fontSize: 11,
-            color: helperTextColor,
+            color: secondaryTextColor,
           ),
           IconElement(
             tag: 'website_icon',
             icon: Icons.language_outlined,
-            x: 22,
-            y: 168,
-            size: 15,
+            x: 24,
+            y: 152,
+            size: 14,
             color: helperTextColor,
           ),
           TextElement(
-            x: 44,
-            y: 166,
-            content: 'www.example.com',
             tag: 'website',
+            content: 'www.example.com',
+            x: 44,
+            y: 152,
             fontSize: 11,
             color: accentTextColor,
           ),
+          IconElement(
+            tag: 'address_icon',
+            icon: Icons.location_on_outlined,
+            x: 140,
+            y: 152,
+            size: 14,
+            color: helperTextColor,
+          ),
+          TextElement(
+            tag: 'address',
+            content: '示例详细地址',
+            x: 160,
+            y: 152,
+            fontSize: 11,
+            color: secondaryTextColor,
+          ),
+        ];
+
+      case 'layout_classic':
+      default:
+        return [
+          TextElement(
+            tag: 'name',
+            content: l10n.name,
+            x: left,
+            y: top,
+            fontSize: 24,
+            isBold: true,
+            color: primaryTextColor,
+          ),
+          TextElement(
+            tag: 'title',
+            content: l10n.jobTitle,
+            x: left,
+            y: top + 32,
+            fontSize: 13,
+            color: secondaryTextColor,
+          ),
+          TextElement(
+            tag: 'company',
+            content: l10n.company,
+            x: left,
+            y: top + 54,
+            fontSize: 16,
+            isBold: true,
+            color: primaryTextColor,
+          ),
+          ...contactColumn(
+            startX: left,
+            startY: 108,
+            includeAddress: true,
+          ),
           ImageElement(
             tag: 'avatar',
-            x: 218,
-            y: 20,
+            x: rightAvatarX(avatarClassicSize),
+            y: top + 2,
             imageUrl: '',
-            width: 66,
-            height: 66,
+            width: avatarClassicSize,
+            height: avatarClassicSize,
           ),
         ];
     }
@@ -548,16 +609,21 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
       ),
       child: Stack(
         children: [
-          if (option.id == 'layout_left') ...[
+          if (option.id == 'layout_classic') ...[
             Positioned(
               left: 8,
               top: 8,
-              child: Container(width: 26, height: 5, color: const Color(0xFF111827)),
+              child: Container(width: 24, height: 5, color: const Color(0xFF111827)),
             ),
             Positioned(
               left: 8,
               top: 18,
-              child: Container(width: 20, height: 4, color: const Color(0xFF6B7280)),
+              child: Container(width: 18, height: 4, color: const Color(0xFF6B7280)),
+            ),
+            Positioned(
+              left: 8,
+              top: 27,
+              child: Container(width: 20, height: 4, color: const Color(0xFF111827)),
             ),
             Positioned(
               right: 8,
@@ -573,7 +639,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             ),
             Positioned(
               left: 8,
-              bottom: 18,
+              bottom: 16,
               child: Container(
                 width: 6,
                 height: 6,
@@ -585,12 +651,12 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             ),
             Positioned(
               left: 18,
-              bottom: 18,
-              child: Container(width: 32, height: 4, color: const Color(0xFF6B7280)),
+              bottom: 17,
+              child: Container(width: 28, height: 4, color: const Color(0xFF6B7280)),
             ),
             Positioned(
               left: 8,
-              bottom: 8,
+              bottom: 7,
               child: Container(
                 width: 6,
                 height: 6,
@@ -603,7 +669,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             Positioned(
               left: 18,
               bottom: 8,
-              child: Container(width: 38, height: 4, color: const Color(0xFF6B7280)),
+              child: Container(width: 34, height: 4, color: const Color(0xFF6B7280)),
             ),
           ],
           if (option.id == 'layout_center') ...[
@@ -620,17 +686,68 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
               ),
             ),
             Positioned(
-              left: 28,
-              top: 28,
+              left: 29,
+              top: 27,
               child: Container(width: 34, height: 5, color: const Color(0xFF111827)),
             ),
             Positioned(
-              left: 32,
-              top: 38,
+              left: 33,
+              top: 36,
               child: Container(width: 26, height: 4, color: const Color(0xFF6B7280)),
             ),
             Positioned(
-              left: 18,
+              left: 31,
+              top: 44,
+              child: Container(width: 30, height: 4, color: const Color(0xFF111827)),
+            ),
+            // Positioned(
+            //   left: 29,
+            //   bottom: 10,
+            //   child: Container(
+            //     width: 6,
+            //     height: 6,
+            //     decoration: const BoxDecoration(
+            //       color: Color(0xFF9CA3AF),
+            //       shape: BoxShape.circle,
+            //     ),
+            //   ),
+            // ),
+            // Positioned(
+            //   left: 39,
+            //   bottom: 11,
+            //   child: Container(width: 25, height: 4, color: const Color(0xFF6B7280)),
+            // ),
+          ],
+          if (option.id == 'layout_bottom_bar') ...[
+            Positioned(
+              left: 8,
+              top: 8,
+              child: Container(width: 24, height: 5, color: const Color(0xFF111827)),
+            ),
+            Positioned(
+              left: 8,
+              top: 18,
+              child: Container(width: 18, height: 4, color: const Color(0xFF6B7280)),
+            ),
+            Positioned(
+              left: 8,
+              top: 27,
+              child: Container(width: 20, height: 4, color: const Color(0xFF111827)),
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD1D5DB),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 8,
               bottom: 10,
               child: Container(
                 width: 6,
@@ -642,37 +759,13 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
               ),
             ),
             Positioned(
-              left: 28,
+              left: 18,
               bottom: 11,
-              child: Container(width: 42, height: 4, color: const Color(0xFF6B7280)),
-            ),
-          ],
-          if (option.id == 'layout_split') ...[
-            Positioned(
-              left: 8,
-              top: 8,
-              child: Container(width: 22, height: 5, color: const Color(0xFF111827)),
+              child: Container(width: 22, height: 4, color: const Color(0xFF6B7280)),
             ),
             Positioned(
-              left: 8,
-              top: 18,
-              child: Container(width: 18, height: 4, color: const Color(0xFF6B7280)),
-            ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD1D5DB),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 8,
-              bottom: 18,
+              left: 48,
+              bottom: 10,
               child: Container(
                 width: 6,
                 height: 6,
@@ -683,26 +776,9 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
               ),
             ),
             Positioned(
-              left: 18,
-              bottom: 18,
-              child: Container(width: 26, height: 4, color: const Color(0xFF6B7280)),
-            ),
-            Positioned(
-              left: 8,
-              bottom: 8,
-              child: Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF9CA3AF),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            Positioned(
-              left: 18,
-              bottom: 8,
-              child: Container(width: 30, height: 4, color: const Color(0xFF6B7280)),
+              left: 58,
+              bottom: 11,
+              child: Container(width: 20, height: 4, color: const Color(0xFF6B7280)),
             ),
           ],
         ],
@@ -859,27 +935,45 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
                         : const [],
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEAF2FF),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.add_photo_alternate_outlined,
-                          color: Color(0xFF1677FF),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: _customBackgroundPath != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.file(
+                                    File(_customBackgroundPath!),
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                  ),
+                                )
+                              : Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEAF2FF),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.add_photo_alternate_outlined,
+                                      color: Color(0xFF1677FF),
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        _customBackgroundPath == null ? '上传背景' : '已选自定义背景',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF111827),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                        child: Text(
+                          _customBackgroundPath == null ? '上传背景' : '已选自定义背景',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF111827),
+                          ),
                         ),
                       ),
                     ],

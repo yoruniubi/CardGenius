@@ -8,23 +8,25 @@
 
 ## 🚀 主要功能
 
--   **🔍 智能文字提取 (OCR)**：集成 PaddleOCR，支持从相册选择或直接拍照识别名片文字。
--   **📇 名片管理**：支持名片的增删改查，轻松管理您的数字名片夹。
--   **📄 文档扫描**：内置文档扫描功能，自动优化名片拍摄效果。
--   **🎨 模板与导出**：提供多种名片模板，支持将名片信息导出为图片或分享。
--   **📲 扫码保存**：自动生成联系人二维码，扫码即可快速保存到手机通讯录。
--   **🌐 多语言支持**：支持简体中文与英文，适配系统语言设置。
--   **✨ 现代 UI 设计**：基于 `shadcn_ui` 构建，提供简洁、美观且易用的交互体验。
+-   **🔍 智能文字提取 (OCR)**：集成 PaddleOCR（通过自定义 `ocr_plugin`），支持拍照、相册图片识别名片文字。
+-   **📇 名片管理**：支持名片新增、编辑、删除、列表管理，并持久化保存本地数据。
+-   **📄 文档扫描与图片导入**：内置文档扫描（`cunning_document_scanner`），可快速获取更清晰的名片图像。
+-   **🎨 模板编辑与应用**：支持模板选择、样式调整与自定义背景图导入，快速生成个性化电子名片。
+-   **🔗 多方式分享**：支持二维码分享、文本链接分享、名片图片导出分享。
+-   **📲 扫码导入**：内置扫码能力（`mobile_scanner`），可直接导入他人分享的名片链接。
+-   **🌐 多语言支持**：支持简体中文/英文，并支持跟随系统语言。
+-   **✨ 现代化 UI**：基于 `antd_flutter_mobile` 构建移动端风格界面，交互统一、体验简洁。
 
 ## 🛠️ 技术栈
 
 -   **Framework**: [Flutter](https://flutter.dev/)
--   **UI Components**: [Shadcn UI (Flutter)](https://shadcn-ui.com/)
--   **OCR Engine**: PaddleOCR (通过自定义 `ocr_plugin` 集成)
--   **Scanning**: `cunning_document_scanner`
+-   **UI Components**: `antd_flutter_mobile`
+-   **OCR Engine**: PaddleOCR（通过自定义 `ocr_plugin` 集成）
+-   **Scanning**: `cunning_document_scanner`, `mobile_scanner`
+-   **Share & QR**: `share_plus`, `qr_flutter`, `app_links`
 -   **Storage**: `shared_preferences`
--   **State Management**: Provider (LocaleProvider)
--   **Icons**: Lucide Icons
+-   **State Management**: Provider (`LocaleProvider`)
+-   **Image & File**: `image_picker`, `file_picker`, `screenshot`
 
 ## 📦 快速开始
 

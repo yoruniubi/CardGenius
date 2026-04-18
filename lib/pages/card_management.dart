@@ -16,6 +16,7 @@ import 'package:business_card_ocr/l10n/app_localizations.dart';
 import 'package:business_card_ocr/models/business_card.dart';
 import 'package:business_card_ocr/pages/card_editor_page.dart';
 import 'package:business_card_ocr/services/share_link_service.dart';
+import 'package:antd_flutter_mobile/index.dart';
 
 class CardPage extends StatefulWidget {
   const CardPage({super.key, this.showAppBar = true});
@@ -218,6 +219,48 @@ class _CardPageState extends State<CardPage> {
           }
         }
       }
+
+      final isCenterLayout = _currentTemplate?.id.contains('layout_center') ?? false;
+      if (isCenterLayout) {
+        IconElement? phoneIcon;
+        TextElement? phoneText;
+        IconElement? emailIcon;
+        TextElement? emailText;
+
+        for (final element in _cardElements) {
+          if (element is IconElement && element.tag == 'phone_icon') phoneIcon = element;
+          if (element is TextElement && element.tag == 'phone') phoneText = element;
+          if (element is IconElement && element.tag == 'email_icon') emailIcon = element;
+          if (element is TextElement && element.tag == 'email') emailText = element;
+        }
+
+        if (phoneIcon != null && phoneText != null && emailIcon != null && emailText != null) {
+          const double slot1IconY = 132;
+          const double slot1TextY = 130;
+          const double slot2IconY = 150;
+          const double slot2TextY = 148;
+
+          final bool phoneVisible = _showPhone && phoneText.content.trim().isNotEmpty;
+          final bool emailVisible = _showEmail && emailText.content.trim().isNotEmpty;
+
+          if (phoneVisible && emailVisible) {
+            phoneIcon.y = slot1IconY;
+            phoneText.y = slot1TextY;
+            emailIcon.y = slot2IconY;
+            emailText.y = slot2TextY;
+          } else if (phoneVisible && !emailVisible) {
+            phoneIcon.y = slot1IconY;
+            phoneText.y = slot1TextY;
+            emailIcon.y = slot2IconY;
+            emailText.y = slot2TextY;
+          } else if (!phoneVisible && emailVisible) {
+            emailIcon.y = slot1IconY;
+            emailText.y = slot1TextY;
+            phoneIcon.y = slot2IconY;
+            phoneText.y = slot2TextY;
+          }
+        }
+      }
     });
   }
 
@@ -281,6 +324,7 @@ class _CardPageState extends State<CardPage> {
         }
       }
     });
+    _updatePreview();
   }
 
   Future<void> _loadSavedCard() async {
@@ -475,7 +519,7 @@ class _CardPageState extends State<CardPage> {
                 _buildShareOptionItem(
                   icon: Icons.text_snippet_outlined,
                   title: '文字信息分享',
-                  subtitle: '以文字链接形式分享名片信息',
+                  subtitle: '以文字链接形式分享名片信息,复制到浏览器中打开即可导入',
                   onTap: () {
                     Navigator.pop(context);
                     _shareAsText();
@@ -502,41 +546,39 @@ class _CardPageState extends State<CardPage> {
     final card = _buildCurrentCard();
     final link = ShareLinkService.buildLink(card);
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('二维码分享'),
-        content: SizedBox(
-          width: 260,
-          height: 300,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              QrImageView(
-                data: link,
-                version: QrVersions.auto,
-                size: 220,
-                backgroundColor: Colors.white,
+    AntdModal.show(
+      title: const Text('二维码分享'),
+      content: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            QrImageView(
+              data: link,
+              version: QrVersions.auto,
+              size: 220,
+              backgroundColor: Colors.white,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '使用名片智造扫一扫即可直接导入',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: Color(0xFF6B7280),
               ),
-              const SizedBox(height: 12),
-              const Text(
-                '使用名片智造扫一扫即可直接导入',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
-          ),
-        ],
       ),
+      actions: [
+        AntdModalAction(
+          title: const Text('关闭'),
+          onTap: (close) async {
+            await close();
+          },
+        ),
+      ],
     );
   }
 
@@ -658,6 +700,15 @@ class _CardPageState extends State<CardPage> {
           ),
           child: Stack(
             children: _cardElements.map((element) {
+              String _textByTag(String tag) {
+                for (final e in _cardElements) {
+                  if (e is TextElement && e.tag == tag) {
+                    return e.content.trim();
+                  }
+                }
+                return '';
+              }
+
               if (element is TextElement) {
                 if (element.content.isEmpty) return const SizedBox.shrink();
                 return Positioned(
@@ -685,14 +736,10 @@ class _CardPageState extends State<CardPage> {
                 );
               } else if (element is IconElement) {
                 final shouldHide = switch (element.tag) {
-                  'phone_icon' =>
-                    !_showPhone || _phoneController.text.trim().isEmpty,
-                  'email_icon' =>
-                    !_showEmail || _emailController.text.trim().isEmpty,
-                  'address_icon' =>
-                    !_showAddress || _addressController.text.trim().isEmpty,
-                  'website_icon' =>
-                    !_showWebsite || _websiteController.text.trim().isEmpty,
+                  'phone_icon' => !_showPhone || _textByTag('phone').isEmpty,
+                  'email_icon' => !_showEmail || _textByTag('email').isEmpty,
+                  'address_icon' => !_showAddress || _textByTag('address').isEmpty,
+                  'website_icon' => !_showWebsite || _textByTag('website').isEmpty,
                   _ => false,
                 };
                 if (shouldHide) return const SizedBox.shrink();
@@ -982,7 +1029,7 @@ class _CardPageState extends State<CardPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    '模板负责控制背景与排版。编辑页将负责头像、展示字段和个性化内容设置。',
+                    '模板负责控制背景与排版。编辑页将负责头像、展示字段和个性化内容设置。分享负责将名片信息以不同形式分享给他人。',
                     style: const TextStyle(
                       fontSize: 13,
                       color: Color(0xFF6B7280),

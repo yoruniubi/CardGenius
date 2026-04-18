@@ -261,6 +261,48 @@ class _CardEditorPageState extends State<CardEditorPage> {
           }
         }
       }
+
+      final isCenterLayout = _currentTemplate?.id.contains('layout_center') ?? false;
+      if (isCenterLayout) {
+        IconElement? phoneIcon;
+        TextElement? phoneText;
+        IconElement? emailIcon;
+        TextElement? emailText;
+
+        for (final element in _previewElements) {
+          if (element is IconElement && element.tag == 'phone_icon') phoneIcon = element;
+          if (element is TextElement && element.tag == 'phone') phoneText = element;
+          if (element is IconElement && element.tag == 'email_icon') emailIcon = element;
+          if (element is TextElement && element.tag == 'email') emailText = element;
+        }
+
+        if (phoneIcon != null && phoneText != null && emailIcon != null && emailText != null) {
+          const double slot1IconY = 132;
+          const double slot1TextY = 130;
+          const double slot2IconY = 150;
+          const double slot2TextY = 148;
+
+          final bool phoneVisible = _showPhone && phoneText.content.trim().isNotEmpty;
+          final bool emailVisible = _showEmail && emailText.content.trim().isNotEmpty;
+
+          if (phoneVisible && emailVisible) {
+            phoneIcon.y = slot1IconY;
+            phoneText.y = slot1TextY;
+            emailIcon.y = slot2IconY;
+            emailText.y = slot2TextY;
+          } else if (phoneVisible && !emailVisible) {
+            phoneIcon.y = slot1IconY;
+            phoneText.y = slot1TextY;
+            emailIcon.y = slot2IconY;
+            emailText.y = slot2TextY;
+          } else if (!phoneVisible && emailVisible) {
+            emailIcon.y = slot1IconY;
+            emailText.y = slot1TextY;
+            phoneIcon.y = slot2IconY;
+            phoneText.y = slot2TextY;
+          }
+        }
+      }
     });
   }
 
@@ -335,21 +377,14 @@ class _CardEditorPageState extends State<CardEditorPage> {
       backgroundColor = _currentTemplate!.backgroundColor!;
     }
 
-    final bool isDarkCard =
-        decorationImage == null && backgroundColor.computeLuminance() < 0.4;
-
     return AspectRatio(
       aspectRatio: 16 / 9,
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isDarkCard
-                ? Colors.white.withOpacity(0.14)
-                : const Color(0xFFE5E7EB),
-          ),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
           boxShadow: const [
             BoxShadow(
               color: Color(0x12000000),
@@ -361,6 +396,14 @@ class _CardEditorPageState extends State<CardEditorPage> {
         ),
         child: Stack(
           children: _previewElements.map((element) {
+            String _textByTag(String tag) {
+              for (final e in _previewElements) {
+                if (e is TextElement && e.tag == tag) {
+                  return e.content.trim();
+                }
+              }
+              return '';
+            }
             if (element is TextElement) {
               if (element.content.isEmpty) {
                 return const SizedBox.shrink();
@@ -370,7 +413,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
                 left: element.x,
                 top: element.y,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 210),
+                  constraints: const BoxConstraints(maxWidth: 240),
                   child: Text(
                     element.content,
                     maxLines: 2,
@@ -391,12 +434,10 @@ class _CardEditorPageState extends State<CardEditorPage> {
 
             if (element is IconElement) {
               final shouldHide = switch (element.tag) {
-                'phone_icon' => !_showPhone || _phoneController.text.trim().isEmpty,
-                'email_icon' => !_showEmail || _emailController.text.trim().isEmpty,
-                'address_icon' =>
-                  !_showAddress || _addressController.text.trim().isEmpty,
-                'website_icon' =>
-                  !_showWebsite || _websiteController.text.trim().isEmpty,
+                'phone_icon' => !_showPhone || _textByTag('phone').isEmpty,
+                'email_icon' => !_showEmail || _textByTag('email').isEmpty,
+                'address_icon' => !_showAddress || _textByTag('address').isEmpty,
+                'website_icon' => !_showWebsite || _textByTag('website').isEmpty,
                 _ => false,
               };
 
@@ -499,6 +540,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
         const SizedBox(height: 6),
         TextField(
           controller: controller,
+          minLines: 1,
           maxLines: maxLines,
           decoration: InputDecoration(
             hintText: hint,
@@ -511,8 +553,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
                     size: 20,
                   )
                 : null,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -602,10 +643,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
         children: [
           const _SectionLabel(title: '实时预览'),
           const SizedBox(height: 8),
-          _Panel(
-            padding: const EdgeInsets.all(12),
-            child: _buildPreviewCard(),
-          ),
+          _buildPreviewCard(),
 
           const SizedBox(height: 24),
           const _SectionLabel(title: '头像'),
