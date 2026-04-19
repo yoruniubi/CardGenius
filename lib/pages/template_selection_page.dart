@@ -28,22 +28,22 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
       _BackgroundOption(
         id: 'bg_asset_1',
         name: l10n.imageBackground1,
-        assetPath: 'assets/1.png',
+        assetPath: 'assets/2.png',
       ),
       _BackgroundOption(
         id: 'bg_asset_2',
         name: l10n.imageBackground2,
-        assetPath: 'assets/2.png',
+        assetPath: 'assets/3.png',
       ),
       _BackgroundOption(
         id: 'bg_asset_3',
         name: l10n.imageBackground3,
-        assetPath: 'assets/3.png',
+        assetPath: 'assets/4.png',
       ),
       _BackgroundOption(
         id: 'bg_asset_4',
         name: l10n.imageBackground4,
-        assetPath: 'assets/4.png',
+        assetPath: 'assets/5.png',
       ),
       _BackgroundOption(
         id: 'bg_color_blue',
