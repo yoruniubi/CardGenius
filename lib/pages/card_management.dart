@@ -586,9 +586,18 @@ class _CardPageState extends State<CardPage> {
   }
 
   void _shareAsText() {
+    final l10n = AppLocalizations.of(context)!;
     final card = _buildCurrentCard();
-    final link = ShareLinkService.buildLink(card);
-    Share.share(link);
+    final lines = <String>[
+      if (card.name.trim().isNotEmpty) '${l10n.name}: ${card.name.trim()}',
+      if ((card.title ?? '').trim().isNotEmpty) '${l10n.jobTitle}: ${card.title!.trim()}',
+      if ((card.company ?? '').trim().isNotEmpty) '${l10n.company}: ${card.company!.trim()}',
+      if ((card.phone ?? '').trim().isNotEmpty) '${l10n.phone}: ${card.phone!.trim()}',
+      if ((card.email ?? '').trim().isNotEmpty) '${l10n.email}: ${card.email!.trim()}',
+      if ((card.website ?? '').trim().isNotEmpty) '${l10n.website}: ${card.website!.trim()}',
+    ];
+
+    Share.share(lines.join('\n'));
   }
 
   void _templateSetting() async {
