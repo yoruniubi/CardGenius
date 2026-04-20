@@ -1051,6 +1051,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scan'**
   String get scan;
+
+  /// No description provided for @ocrToolbox.
+  ///
+  /// In en, this message translates to:
+  /// **'OCR Toolbox'**
+  String get ocrToolbox;
+
+  /// No description provided for @uploadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Image'**
+  String get uploadImage;
+
+  /// No description provided for @result.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get result;
+
+  /// No description provided for @ocrResultPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'OCR result will appear here.'**
+  String get ocrResultPlaceholder;
 }
 
 class _AppLocalizationsDelegate

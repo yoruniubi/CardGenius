@@ -193,5 +193,9 @@
   "galleryImportDescription": "从相册选择已有名片图片进行识别",
   "manualInputDescription": "不识别图片，直接手动新增联系人",
   "savedCards": "已保存名片",
-  "scan": "扫一扫"
+  "scan": "扫一扫",
+  "ocrToolbox": "OCR 工具箱",
+  "uploadImage": "上传图片",
+  "result": "结果",
+  "ocrResultPlaceholder": "OCR 识别结果将在此显示。"
 }

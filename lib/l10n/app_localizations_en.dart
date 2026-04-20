@@ -521,4 +521,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scan => 'Scan';
+
+  @override
+  String get ocrToolbox => 'OCR Toolbox';
+
+  @override
+  String get uploadImage => 'Upload Image';
+
+  @override
+  String get result => 'Result';
+
+  @override
+  String get ocrResultPlaceholder => 'OCR result will appear here.';
 }

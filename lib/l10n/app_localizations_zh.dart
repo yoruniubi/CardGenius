@@ -496,4 +496,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get scan => '扫一扫';
+
+  @override
+  String get ocrToolbox => 'OCR 工具箱';
+
+  @override
+  String get uploadImage => '上传图片';
+
+  @override
+  String get result => '结果';
+
+  @override
+  String get ocrResultPlaceholder => 'OCR 识别结果将在此显示。';
 }

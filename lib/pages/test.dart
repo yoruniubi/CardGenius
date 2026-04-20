@@ -1,26 +1,111 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
+import 'package:ocr_plugin/ocr_plugin.dart';
 import 'package:business_card_ocr/providers/locale_provider.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
 import 'package:business_card_ocr/services/ocr_service.dart';
 import 'package:antd_flutter_mobile/index.dart';
 
-class OcrTestPage extends StatelessWidget {
+class OcrTestPage extends StatefulWidget {
   const OcrTestPage({super.key, this.showAppBar = true});
 
   final bool showAppBar;
 
   @override
+  State<OcrTestPage> createState() => _OcrTestPageState();
+}
+
+class _OcrTestPageState extends State<OcrTestPage> {
+  final ImagePicker _picker = ImagePicker();
+  final OcrPlugin _ocrPlugin = OcrPlugin();
+
+  bool _isProcessing = false;
+  String _ocrResult = '';
+  String? _selectedImagePath;
+
+  @override
+  void initState() {
+    super.initState();
+    _initLocalOcrPlugin();
+  }
+
+  Future<void> _initLocalOcrPlugin() async {
+    try {
+      await _ocrPlugin.init(
+        modelPath: "models/ch_PP-OCRv4",
+        labelPath: "labels/ppocr_keys_v1.txt",
+        cpuThreadNum: 4,
+        cpuPowerMode: "LITE_POWER_HIGH",
+      );
+    } catch (e) {
+      debugPrint('OCR plugin init error: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _ocrPlugin.release();
+    super.dispose();
+  }
+
+  Future<void> _pickAndRecognize(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(source: source);
+      if (image == null) return;
+
+      setState(() {
+        _isProcessing = true;
+        _ocrResult = '';
+        _selectedImagePath = image.path;
+      });
+
+      if (kIsWeb) {
+        setState(() {
+          _ocrResult = 'OCR is not supported on web.';
+          _isProcessing = false;
+        });
+        return;
+      }
+
+      final result = await _ocrPlugin.recognizeText(image.path);
+
+      String text = '';
+      if (result != null && result['simpleText'] != null) {
+        text = result['simpleText'] as String;
+      }
+
+      setState(() {
+        _ocrResult = text.trim().isEmpty ? 'No text recognized.' : text.trim();
+        _isProcessing = false;
+      });
+    } catch (e) {
+      setState(() {
+        _ocrResult = 'Recognition failed: $e';
+        _isProcessing = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    final body = const _SettingsBody();
+    final body = _SettingsBody(
+      isProcessing: _isProcessing,
+      ocrResult: _ocrResult,
+      selectedImagePath: _selectedImagePath,
+      onUploadImage: () => _pickAndRecognize(ImageSource.gallery),
+      onTakePhoto: () => _pickAndRecognize(ImageSource.camera),
+    );
 
-    if (!showAppBar) {
-      return const ColoredBox(
-        color: Color(0xFFF5F6F8),
+    if (!widget.showAppBar) {
+      return ColoredBox(
+        color: const Color(0xFFF5F6F8),
         child: SafeArea(
           top: false,
-          child: _SettingsBody(),
+          child: body,
         ),
       );
     }
@@ -43,7 +128,19 @@ class OcrTestPage extends StatelessWidget {
 }
 
 class _SettingsBody extends StatelessWidget {
-  const _SettingsBody();
+  const _SettingsBody({
+    required this.isProcessing,
+    required this.ocrResult,
+    required this.selectedImagePath,
+    required this.onUploadImage,
+    required this.onTakePhoto,
+  });
+
+  final bool isProcessing;
+  final String ocrResult;
+  final String? selectedImagePath;
+  final VoidCallback onUploadImage;
+  final VoidCallback onTakePhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +189,100 @@ class _SettingsBody extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         _SettingsSection(
+          title: l10n.ocrToolbox,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: AntdButton(
+                        block: true,
+                        onTap: isProcessing ? null : onUploadImage,
+                        child: Text(l10n.uploadImage),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AntdButton(
+                        block: true,
+                        fill: AntdButtonFill.outline,
+                        onTap: isProcessing ? null : onTakePhoto,
+                        child: Text(l10n.takePhoto),
+                      ),
+                    ),
+                  ],
+                ),
+                if (selectedImagePath != null) ...[
+                  const SizedBox(height: 14),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      child: Image.file(
+                        File(selectedImagePath!),
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.broken_image_outlined,
+                              size: 40,
+                              color: Color(0xFF9CA3AF),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 14),
+                Text(
+                  l10n.result,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  constraints: const BoxConstraints(minHeight: 120),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: isProcessing
+                      ? const Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      : Text(
+                          ocrResult.isEmpty
+                              ? l10n.ocrResultPlaceholder
+                              : ocrResult,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            height: 1.5,
+                            color: Color(0xFF374151),
+                          ),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        _SettingsSection(
           title: l10n.aboutAppSection,
           child: Column(
             children: [
@@ -121,6 +312,7 @@ class _SettingsBody extends StatelessWidget {
       ],
     );
   }
+
   static String _languageSubtitle(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     switch (localeProvider.languageCode) {
@@ -219,18 +411,6 @@ class _SettingsBody extends StatelessWidget {
     );
   }
 
-  // static String _languageSubtitle(BuildContext context) {
-  //   final l10n = AppLocalizations.of(context)!;
-  //   switch (localeProvider.languageCode) {
-  //     case 'zh':
-  //       return l10n.simplifiedChinese;
-  //     case 'en':
-  //       return l10n.english;
-  //     default:
-  //       return l10n.followSystem;
-  //   }
-  // }
-
   static void _showAboutModal(BuildContext context) {
     showDialog(
       context: context,
@@ -289,77 +469,6 @@ class _SettingsBody extends StatelessWidget {
     );
   }
 }
-
-// class _PageIntro extends StatelessWidget {
-//   const _PageIntro({
-//     required this.title,
-//     required this.description,
-//   });
-
-//   final String title;
-//   final String description;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       padding: const EdgeInsets.all(18),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(20),
-//         border: Border.all(color: const Color(0xFFF0F1F3)),
-//         boxShadow: const [
-//           BoxShadow(
-//             color: Color(0x08000000),
-//             blurRadius: 14,
-//             offset: Offset(0, 4),
-//           ),
-//         ],
-//       ),
-//       child: Row(
-//         children: [
-//           Container(
-//             width: 52,
-//             height: 52,
-//             decoration: BoxDecoration(
-//               color: const Color(0xFFEAF2FF),
-//               borderRadius: BorderRadius.circular(16),
-//             ),
-//             child: const Icon(
-//               Icons.settings_outlined,
-//               color: Color(0xFF1677FF),
-//               size: 26,
-//             ),
-//           ),
-//           const SizedBox(width: 14),
-//           Expanded(
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Text(
-//                   title,
-//                   style: const TextStyle(
-//                     fontSize: 18,
-//                     fontWeight: FontWeight.w700,
-//                     color: Color(0xFF111827),
-//                   ),
-//                 ),
-//                 const SizedBox(height: 4),
-//                 Text(
-//                   description,
-//                   style: const TextStyle(
-//                     fontSize: 13,
-//                     color: Color(0xFF6B7280),
-//                     height: 1.5,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
 
 class _SettingsSection extends StatelessWidget {
   const _SettingsSection({

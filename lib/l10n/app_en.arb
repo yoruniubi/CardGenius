@@ -192,5 +192,9 @@
   "galleryImportDescription": "Choose an existing business card image from the gallery for recognition",
   "manualInputDescription": "Skip image recognition and add a contact manually",
   "savedCards": "Saved Cards",
-  "scan": "Scan"
+  "scan": "Scan",
+  "ocrToolbox": "OCR Toolbox",
+  "uploadImage": "Upload Image",
+  "result": "Result",
+  "ocrResultPlaceholder": "OCR result will appear here."
 }
