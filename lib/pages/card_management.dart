@@ -219,49 +219,147 @@ class _CardPageState extends State<CardPage> {
           }
         }
       }
+    });
+  }
 
-      final isCenterLayout = _currentTemplate?.id.contains('layout_center') ?? false;
-      if (isCenterLayout) {
-        IconElement? phoneIcon;
-        TextElement? phoneText;
-        IconElement? emailIcon;
-        TextElement? emailText;
+  bool get _isCustomLayout => _currentTemplate?.id.contains('layout_custom') ?? false;
 
-        for (final element in _cardElements) {
-          if (element is IconElement && element.tag == 'phone_icon') phoneIcon = element;
-          if (element is TextElement && element.tag == 'phone') phoneText = element;
-          if (element is IconElement && element.tag == 'email_icon') emailIcon = element;
-          if (element is TextElement && element.tag == 'email') emailText = element;
-        }
+  Set<String> _linkedTags(String? tag) {
+    if (tag == null) return const {};
 
-        if (phoneIcon != null && phoneText != null && emailIcon != null && emailText != null) {
-          const double slot1IconY = 132;
-          const double slot1TextY = 130;
-          const double slot2IconY = 150;
-          const double slot2TextY = 148;
+    switch (tag) {
+      case 'phone':
+      case 'phone_icon':
+        return const {'phone', 'phone_icon'};
+      case 'email':
+      case 'email_icon':
+        return const {'email', 'email_icon'};
+      case 'address':
+      case 'address_icon':
+        return const {'address', 'address_icon'};
+      case 'website':
+      case 'website_icon':
+        return const {'website', 'website_icon'};
+      default:
+        return {tag};
+    }
+  }
 
-          final bool phoneVisible = _showPhone && phoneText.content.trim().isNotEmpty;
-          final bool emailVisible = _showEmail && emailText.content.trim().isNotEmpty;
+  Future<void> _persistCurrentCard() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cardData = {
+        'name': _nameController.text,
+        'company': _companyController.text,
+        'title': _titleController.text,
+        'phone': _phoneController.text,
+        'email': _emailController.text,
+        'address': _addressController.text,
+        'website': _websiteController.text,
+        'notes': _notesController.text,
+        'template_id': _currentTemplate?.id,
+        'template_name': _currentTemplate?.name,
+        'template_preview_path': _currentTemplate?.previewImagePath,
+        'elements': _cardElements.map((e) => e.toJson()).toList(),
+        'template_background_color_value': _currentTemplate?.backgroundColorValue,
+        'showPhone': _showPhone,
+        'showEmail': _showEmail,
+        'showAddress': _showAddress,
+        'showWebsite': _showWebsite,
+        'showImage': _showImage,
+        'imagePath': _editingImagePath,
+      };
+      await prefs.setString('my_business_card', json.encode(cardData));
 
-          if (phoneVisible && emailVisible) {
-            phoneIcon.y = slot1IconY;
-            phoneText.y = slot1TextY;
-            emailIcon.y = slot2IconY;
-            emailText.y = slot2TextY;
-          } else if (phoneVisible && !emailVisible) {
-            phoneIcon.y = slot1IconY;
-            phoneText.y = slot1TextY;
-            emailIcon.y = slot2IconY;
-            emailText.y = slot2TextY;
-          } else if (!phoneVisible && emailVisible) {
-            emailIcon.y = slot1IconY;
-            emailText.y = slot1TextY;
-            phoneIcon.y = slot2IconY;
-            phoneText.y = slot2TextY;
+      final templateId = _currentTemplate?.id ?? '';
+      final layoutMatch = RegExp(
+        r'layout_custom_\d+|layout_classic|layout_center|layout_bottom_bar',
+      ).firstMatch(templateId);
+      final parsedLayoutId = layoutMatch?.group(0);
+      if (parsedLayoutId != null) {
+        final splitToken = '_$parsedLayoutId';
+        final splitIndex = templateId.lastIndexOf(splitToken);
+        if (splitIndex > 0) {
+          final backgroundId = templateId.substring(0, splitIndex);
+
+          await prefs.setString('template_selected_background_id', backgroundId);
+
+          if (parsedLayoutId.startsWith('layout_custom_')) {
+            await prefs.setString('template_selected_layout_id', 'layout_custom');
+            await prefs.setString('template_selected_custom_layout_id', parsedLayoutId);
+          } else {
+            await prefs.setString('template_selected_layout_id', parsedLayoutId);
+            await prefs.remove('template_selected_custom_layout_id');
+          }
+
+          if (backgroundId == 'bg_custom' && _currentTemplate?.previewImagePath != null) {
+            await prefs.setString(
+              'template_custom_background_path',
+              _currentTemplate!.previewImagePath!,
+            );
           }
         }
       }
-    });
+
+      final customIdMatch = RegExp(r'layout_custom_\d+').firstMatch(templateId);
+      final customLayoutId = customIdMatch?.group(0);
+      if (customLayoutId != null) {
+        const customLayoutsKey = 'template_saved_custom_layouts';
+        final rawCustomLayouts = prefs.getString(customLayoutsKey);
+        if (rawCustomLayouts != null && rawCustomLayouts.isNotEmpty) {
+          final decoded = json.decode(rawCustomLayouts) as List<dynamic>;
+          final list = decoded
+              .map((e) => BusinessCardTemplate.fromJson(e as Map<String, dynamic>))
+              .toList();
+
+          final idx = list.indexWhere((e) => e.id == customLayoutId);
+          if (idx >= 0) {
+            final old = list[idx];
+            list[idx] = BusinessCardTemplate(
+              id: old.id,
+              name: old.name,
+              previewImagePath: old.previewImagePath,
+              backgroundColorValue: old.backgroundColorValue,
+              elements: _cardElements
+                  .map((e) => CardElement.fromJson(e.toJson()))
+                  .toList(),
+            );
+
+            await prefs.setString(
+              customLayoutsKey,
+              json.encode(list.map((e) => e.toJson()).toList()),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('保存编辑后的电子名片失败: $e');
+    }
+  }
+
+  Widget _wrapDraggableElement(CardElement element, Widget child) {
+    if (!_isCustomLayout) return child;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanUpdate: (details) {
+        final tags = _linkedTags(element.tag);
+
+        setState(() {
+          for (final e in _cardElements) {
+            final tag = e.tag;
+            if (tag == null || !tags.contains(tag)) continue;
+
+            e.x = (e.x + details.delta.dx).clamp(0.0, 300.0);
+            e.y = (e.y + details.delta.dy).clamp(0.0, 170.0);
+          }
+        });
+      },
+      onPanEnd: (_) async {
+        await _persistCurrentCard();
+      },
+      child: child,
+    );
   }
 
   void _loadTemplate(BusinessCardTemplate template) {
@@ -601,6 +699,8 @@ class _CardPageState extends State<CardPage> {
   }
 
   void _templateSetting() async {
+    await _persistCurrentCard();
+
     final selectedTemplate = await Navigator.push<BusinessCardTemplate>(
       context,
       MaterialPageRoute(builder: (context) => const TemplateSelectionPage()),
@@ -608,6 +708,7 @@ class _CardPageState extends State<CardPage> {
 
     if (selectedTemplate != null) {
       _loadTemplate(selectedTemplate);
+      await _persistCurrentCard();
     }
   }
 
@@ -622,52 +723,35 @@ class _CardPageState extends State<CardPage> {
 
     if (result == null) return;
 
+    final editedCard = result.card;
+
     setState(() {
-      _nameController.text = result.name;
-      _titleController.text = result.title ?? '';
-      _companyController.text = result.company ?? '';
-      _phoneController.text = result.phone ?? '';
-      _emailController.text = result.email ?? '';
-      _addressController.text = result.address ?? '';
-      _websiteController.text = result.website ?? '';
-      _notesController.text = result.notes ?? '';
-      _showPhone = result.showPhone;
-      _showEmail = result.showEmail;
-      _showAddress = result.showAddress;
-      _showWebsite = result.showWebsite;
-      _showImage = result.showImage;
-      _editingImagePath = result.imagePath;
+      _nameController.text = editedCard.name;
+      _titleController.text = editedCard.title ?? '';
+      _companyController.text = editedCard.company ?? '';
+      _phoneController.text = editedCard.phone ?? '';
+      _emailController.text = editedCard.email ?? '';
+      _addressController.text = editedCard.address ?? '';
+      _websiteController.text = editedCard.website ?? '';
+      _notesController.text = editedCard.notes ?? '';
+      _showPhone = editedCard.showPhone;
+      _showEmail = editedCard.showEmail;
+      _showAddress = editedCard.showAddress;
+      _showWebsite = editedCard.showWebsite;
+      _showImage = editedCard.showImage;
+      _editingImagePath = editedCard.imagePath;
+
+      if (result.template != null) {
+        _currentTemplate = result.template;
+        _cardElements = result.template!.elements
+            .map((e) => CardElement.fromJson(e.toJson()))
+            .toList();
+      }
     });
 
     _updatePreview();
 
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final cardData = {
-        'name': _nameController.text,
-        'company': _companyController.text,
-        'title': _titleController.text,
-        'phone': _phoneController.text,
-        'email': _emailController.text,
-        'address': _addressController.text,
-        'website': _websiteController.text,
-        'notes': _notesController.text,
-        'template_id': _currentTemplate?.id,
-        'template_name': _currentTemplate?.name,
-        'template_preview_path': _currentTemplate?.previewImagePath,
-        'elements': _cardElements.map((e) => e.toJson()).toList(),
-        'template_background_color_value': _currentTemplate?.backgroundColorValue,
-        'showPhone': _showPhone,
-        'showEmail': _showEmail,
-        'showAddress': _showAddress,
-        'showWebsite': _showWebsite,
-        'showImage': _showImage,
-        'imagePath': _editingImagePath,
-      };
-      await prefs.setString('my_business_card', json.encode(cardData));
-    } catch (e) {
-      debugPrint('保存编辑后的电子名片失败: $e');
-    }
+    await _persistCurrentCard();
   }
 
   Widget _buildCardPreviewWidget() {
@@ -712,7 +796,7 @@ class _CardPageState extends State<CardPage> {
           ),
           child: Stack(
             children: _cardElements.map((element) {
-              String _textByTag(String tag) {
+              String textByTag(String tag) {
                 for (final e in _cardElements) {
                   if (e is TextElement && e.tag == tag) {
                     return e.content.trim();
@@ -726,32 +810,35 @@ class _CardPageState extends State<CardPage> {
                 return Positioned(
                   left: element.x,
                   top: element.y,
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 240),
-                    child: Text(
-                      element.content,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: element.fontSize,
-                        fontFamily: element.fontFamily,
-                        color: element.color,
-                        fontWeight: element.isBold
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        fontStyle: element.isItalic
-                            ? FontStyle.italic
-                            : FontStyle.normal,
+                  child: _wrapDraggableElement(
+                    element,
+                    Container(
+                      constraints: const BoxConstraints(maxWidth: 240),
+                      child: Text(
+                        element.content,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: element.fontSize,
+                          fontFamily: element.fontFamily,
+                          color: element.color,
+                          fontWeight: element.isBold
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          fontStyle: element.isItalic
+                              ? FontStyle.italic
+                              : FontStyle.normal,
+                        ),
                       ),
                     ),
                   ),
                 );
               } else if (element is IconElement) {
                 final shouldHide = switch (element.tag) {
-                  'phone_icon' => !_showPhone || _textByTag('phone').isEmpty,
-                  'email_icon' => !_showEmail || _textByTag('email').isEmpty,
-                  'address_icon' => !_showAddress || _textByTag('address').isEmpty,
-                  'website_icon' => !_showWebsite || _textByTag('website').isEmpty,
+                  'phone_icon' => !_showPhone || textByTag('phone').isEmpty,
+                  'email_icon' => !_showEmail || textByTag('email').isEmpty,
+                  'address_icon' => !_showAddress || textByTag('address').isEmpty,
+                  'website_icon' => !_showWebsite || textByTag('website').isEmpty,
                   _ => false,
                 };
                 if (shouldHide) return const SizedBox.shrink();
@@ -759,10 +846,13 @@ class _CardPageState extends State<CardPage> {
                 return Positioned(
                   left: element.x,
                   top: element.y,
-                  child: Icon(
-                    element.icon,
-                    size: element.size,
-                    color: element.color,
+                  child: _wrapDraggableElement(
+                    element,
+                    Icon(
+                      element.icon,
+                      size: element.size,
+                      color: element.color,
+                    ),
                   ),
                 );
               } else if (element is ImageElement) {
@@ -774,20 +864,23 @@ class _CardPageState extends State<CardPage> {
                   return Positioned(
                     left: element.x,
                     top: element.y,
-                    child: Container(
-                      width: element.width,
-                      height: element.height,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0x14000000),
-                          width: 1,
+                    child: _wrapDraggableElement(
+                      element,
+                      Container(
+                        width: element.width,
+                        height: element.height,
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0x14000000),
+                            width: 1,
+                          ),
                         ),
-                      ),
-                      child: Image.file(
-                        File(_editingImagePath!),
-                        fit: BoxFit.cover,
+                        child: Image.file(
+                          File(_editingImagePath!),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   );
@@ -801,11 +894,14 @@ class _CardPageState extends State<CardPage> {
                   return Positioned(
                     left: element.x,
                     top: element.y,
-                    child: Image.asset(
-                      element.imageUrl,
-                      width: element.width,
-                      height: element.height,
-                      fit: BoxFit.contain,
+                    child: _wrapDraggableElement(
+                      element,
+                      Image.asset(
+                        element.imageUrl,
+                        width: element.width,
+                        height: element.height,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   );
                 }
@@ -813,11 +909,14 @@ class _CardPageState extends State<CardPage> {
                 return Positioned(
                   left: element.x,
                   top: element.y,
-                  child: Image.file(
-                    File(element.imageUrl),
-                    width: element.width,
-                    height: element.height,
-                    fit: BoxFit.cover,
+                  child: _wrapDraggableElement(
+                    element,
+                    Image.file(
+                      File(element.imageUrl),
+                      width: element.width,
+                      height: element.height,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 );
               }

@@ -6,6 +6,15 @@ import 'package:business_card_ocr/models/template.dart';
 import 'package:business_card_ocr/models/element.dart';
 import 'package:business_card_ocr/l10n/app_localizations.dart';
 import 'package:antd_flutter_mobile/index.dart';
+class CardEditorResult {
+  const CardEditorResult({
+    required this.card,
+    this.template,
+  });
+
+  final BusinessCard card;
+  final BusinessCardTemplate? template;
+}
 
 class CardEditorPage extends StatefulWidget {
   const CardEditorPage({
@@ -17,12 +26,12 @@ class CardEditorPage extends StatefulWidget {
   final BusinessCard? card;
   final BusinessCardTemplate? template;
 
-  static Future<BusinessCard?> open(
+  static Future<CardEditorResult?> open(
     BuildContext context, {
     BusinessCard? card,
     BusinessCardTemplate? template,
   }) {
-    return Navigator.push<BusinessCard>(
+    return Navigator.push<CardEditorResult>(
       context,
       MaterialPageRoute(
         builder: (context) => CardEditorPage(
@@ -60,6 +69,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
 
   List<CardElement> _previewElements = [];
   BusinessCardTemplate? _currentTemplate;
+
 
   @override
   void initState() {
@@ -262,47 +272,6 @@ class _CardEditorPageState extends State<CardEditorPage> {
         }
       }
 
-      final isCenterLayout = _currentTemplate?.id.contains('layout_center') ?? false;
-      if (isCenterLayout) {
-        IconElement? phoneIcon;
-        TextElement? phoneText;
-        IconElement? emailIcon;
-        TextElement? emailText;
-
-        for (final element in _previewElements) {
-          if (element is IconElement && element.tag == 'phone_icon') phoneIcon = element;
-          if (element is TextElement && element.tag == 'phone') phoneText = element;
-          if (element is IconElement && element.tag == 'email_icon') emailIcon = element;
-          if (element is TextElement && element.tag == 'email') emailText = element;
-        }
-
-        if (phoneIcon != null && phoneText != null && emailIcon != null && emailText != null) {
-          const double slot1IconY = 132;
-          const double slot1TextY = 130;
-          const double slot2IconY = 150;
-          const double slot2TextY = 148;
-
-          final bool phoneVisible = _showPhone && phoneText.content.trim().isNotEmpty;
-          final bool emailVisible = _showEmail && emailText.content.trim().isNotEmpty;
-
-          if (phoneVisible && emailVisible) {
-            phoneIcon.y = slot1IconY;
-            phoneText.y = slot1TextY;
-            emailIcon.y = slot2IconY;
-            emailText.y = slot2TextY;
-          } else if (phoneVisible && !emailVisible) {
-            phoneIcon.y = slot1IconY;
-            phoneText.y = slot1TextY;
-            emailIcon.y = slot2IconY;
-            emailText.y = slot2TextY;
-          } else if (!phoneVisible && emailVisible) {
-            emailIcon.y = slot1IconY;
-            emailText.y = slot1TextY;
-            phoneIcon.y = slot2IconY;
-            phoneText.y = slot2TextY;
-          }
-        }
-      }
     });
   }
 
@@ -317,7 +286,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
     _updatePreview();
   }
 
-  void _save() {
+  Future<void> _save() async {
     final l10n = AppLocalizations.of(context)!;
 
     if (_nameController.text.trim().isEmpty) {
@@ -353,8 +322,27 @@ class _CardEditorPageState extends State<CardEditorPage> {
     _editingCard.showWebsite = _showWebsite;
     _editingCard.showImage = _showImage;
 
-    Navigator.pop(context, _editingCard);
+    BusinessCardTemplate? updatedTemplate = _currentTemplate;
+    if (_currentTemplate != null) {
+      updatedTemplate = BusinessCardTemplate(
+        id: _currentTemplate!.id,
+        name: _currentTemplate!.name,
+        previewImagePath: _currentTemplate!.previewImagePath,
+        backgroundColorValue: _currentTemplate!.backgroundColorValue,
+        elements: _cloneElements(_previewElements),
+      );
+    }
+
+    if (!mounted) return;
+    Navigator.pop(
+      context,
+      CardEditorResult(
+        card: _editingCard,
+        template: updatedTemplate,
+      ),
+    );
   }
+
 
   Widget _buildPreviewCard() {
     DecorationImage? decorationImage;
@@ -396,7 +384,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
         ),
         child: Stack(
           children: _previewElements.map((element) {
-            String _textByTag(String tag) {
+            String textByTag(String tag) {
               for (final e in _previewElements) {
                 if (e is TextElement && e.tag == tag) {
                   return e.content.trim();
@@ -434,10 +422,10 @@ class _CardEditorPageState extends State<CardEditorPage> {
 
             if (element is IconElement) {
               final shouldHide = switch (element.tag) {
-                'phone_icon' => !_showPhone || _textByTag('phone').isEmpty,
-                'email_icon' => !_showEmail || _textByTag('email').isEmpty,
-                'address_icon' => !_showAddress || _textByTag('address').isEmpty,
-                'website_icon' => !_showWebsite || _textByTag('website').isEmpty,
+                'phone_icon' => !_showPhone || textByTag('phone').isEmpty,
+                'email_icon' => !_showEmail || textByTag('email').isEmpty,
+                'address_icon' => !_showAddress || textByTag('address').isEmpty,
+                'website_icon' => !_showWebsite || textByTag('website').isEmpty,
                 _ => false,
               };
 
@@ -609,7 +597,7 @@ class _CardEditorPageState extends State<CardEditorPage> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF1677FF),
+            activeThumbColor: const Color(0xFF1677FF),
           ),
         ],
       ),

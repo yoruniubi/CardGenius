@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:antd_flutter_mobile/index.dart';
@@ -18,10 +19,14 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
   String _selectedBackgroundId = 'bg_asset_1';
   String _selectedLayoutId = 'layout_classic';
   String? _customBackgroundPath;
+  List<BusinessCardTemplate> _savedCustomLayouts = [];
+  String? _selectedCustomLayoutId;
 
   static const String _bgKey = 'template_selected_background_id';
   static const String _layoutKey = 'template_selected_layout_id';
   static const String _customBgKey = 'template_custom_background_path';
+  static const String _customLayoutsKey = 'template_saved_custom_layouts';
+  static const String _selectedCustomLayoutKey = 'template_selected_custom_layout_id';
 
   List<_BackgroundOption> _backgroundOptions(AppLocalizations l10n) {
     return [
@@ -100,6 +105,21 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     final savedBg = prefs.getString(_bgKey);
     final savedLayout = prefs.getString(_layoutKey);
     final savedCustomBg = prefs.getString(_customBgKey);
+    final savedCustomLayoutId = prefs.getString(_selectedCustomLayoutKey);
+    final rawCustomLayouts = prefs.getString(_customLayoutsKey);
+
+    List<BusinessCardTemplate> customLayouts = [];
+    if (rawCustomLayouts != null && rawCustomLayouts.isNotEmpty) {
+      try {
+        final decoded = json.decode(rawCustomLayouts) as List<dynamic>;
+        customLayouts = decoded
+            .map((e) => BusinessCardTemplate.fromJson(e as Map<String, dynamic>))
+            .where((e) => e.id.startsWith('layout_custom_'))
+            .toList();
+      } catch (_) {
+        customLayouts = [];
+      }
+    }
 
     if (!mounted) return;
 
@@ -112,6 +132,7 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
           'layout_classic',
           'layout_center',
           'layout_bottom_bar',
+          'layout_custom',
         };
         final bool layoutExists = layoutIds.contains(savedLayout);
         _selectedLayoutId = layoutExists ? savedLayout : 'layout_classic';
@@ -119,7 +140,96 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
       if (savedCustomBg != null && savedCustomBg.isNotEmpty) {
         _customBackgroundPath = savedCustomBg;
       }
+
+      _savedCustomLayouts = customLayouts;
+
+      if (savedCustomLayoutId != null &&
+          _savedCustomLayouts.any((e) => e.id == savedCustomLayoutId)) {
+        _selectedCustomLayoutId = savedCustomLayoutId;
+      } else {
+        _selectedCustomLayoutId = _savedCustomLayouts.isNotEmpty
+            ? _savedCustomLayouts.first.id
+            : null;
+      }
+
+      if (_selectedLayoutId == 'layout_custom' && _selectedCustomLayoutId == null) {
+        _selectedLayoutId = 'layout_classic';
+      }
     });
+  }
+
+  Future<void> _saveCustomLayouts() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _customLayoutsKey,
+      json.encode(_savedCustomLayouts.map((e) => e.toJson()).toList()),
+    );
+
+    if (_selectedCustomLayoutId != null) {
+      await prefs.setString(_selectedCustomLayoutKey, _selectedCustomLayoutId!);
+    } else {
+      await prefs.remove(_selectedCustomLayoutKey);
+    }
+  }
+
+  Future<void> _createCustomLayout() async {
+    final l10n = AppLocalizations.of(context)!;
+
+    final selectedBg = _selectedBackgroundId == 'bg_custom'
+        ? _BackgroundOption(
+            id: 'bg_custom',
+            name: l10n.customBackground,
+            filePath: _customBackgroundPath,
+          )
+        : _backgroundOptions(l10n).firstWhere(
+            (e) => e.id == _selectedBackgroundId,
+            orElse: () => _backgroundOptions(l10n).first,
+          );
+
+    final bool useLightText =
+        selectedBg.color != null && selectedBg.color!.computeLuminance() < 0.4;
+
+    final baseLayoutId = (_selectedLayoutId != 'layout_custom')
+        ? _selectedLayoutId
+        : 'layout_classic';
+
+    final created = BusinessCardTemplate(
+      id: 'layout_custom_${DateTime.now().millisecondsSinceEpoch}',
+      name: '${l10n.layoutCustom} ${_savedCustomLayouts.length + 1}',
+      previewImagePath: selectedBg.filePath ?? selectedBg.assetPath,
+      backgroundColorValue: selectedBg.color?.toARGB32(),
+      elements: _buildLayout(l10n, baseLayoutId, useLightText),
+    );
+
+    setState(() {
+      _savedCustomLayouts = [created, ..._savedCustomLayouts];
+      _selectedLayoutId = 'layout_custom';
+      _selectedCustomLayoutId = created.id;
+    });
+
+    await _saveCustomLayouts();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_layoutKey, _selectedLayoutId);
+  }
+
+  Future<void> _deleteCustomLayout(String id) async {
+    setState(() {
+      _savedCustomLayouts = _savedCustomLayouts.where((e) => e.id != id).toList();
+      if (_selectedCustomLayoutId == id) {
+        _selectedCustomLayoutId = _savedCustomLayouts.isNotEmpty
+            ? _savedCustomLayouts.first.id
+            : null;
+      }
+      if (_savedCustomLayouts.isEmpty && _selectedLayoutId == 'layout_custom') {
+        _selectedLayoutId = 'layout_classic';
+      }
+    });
+
+    await _saveCustomLayouts();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_layoutKey, _selectedLayoutId);
   }
 
   Future<void> _pickCustomBackground() async {
@@ -491,24 +601,52 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             name: l10n.customBackground,
             filePath: _customBackgroundPath,
           )
-        : backgroundOptions.firstWhere((e) => e.id == _selectedBackgroundId);
+        : backgroundOptions.firstWhere(
+            (e) => e.id == _selectedBackgroundId,
+            orElse: () => backgroundOptions.first,
+          );
 
     final bool useLightText =
-        selectedBg.color != null &&
-            selectedBg.color!.computeLuminance() < 0.4;
+        selectedBg.color != null && selectedBg.color!.computeLuminance() < 0.4;
+
+    List<CardElement> elements;
+    String layoutName;
+    String finalLayoutId;
+
+    if (_selectedLayoutId == 'layout_custom' &&
+        _selectedCustomLayoutId != null &&
+        _savedCustomLayouts.isNotEmpty) {
+      final custom = _savedCustomLayouts.firstWhere(
+        (e) => e.id == _selectedCustomLayoutId,
+        orElse: () => _savedCustomLayouts.first,
+      );
+      elements = custom.elements
+          .map((e) => CardElement.fromJson(e.toJson()))
+          .toList();
+      layoutName = custom.name;
+      finalLayoutId = custom.id;
+    } else {
+      elements = _buildLayout(l10n, _selectedLayoutId, useLightText);
+      layoutName = layoutOptions
+          .firstWhere((e) => e.id == _selectedLayoutId, orElse: () => layoutOptions.first)
+          .name;
+      finalLayoutId = _selectedLayoutId;
+    }
 
     final template = BusinessCardTemplate(
-      id: '${selectedBg.id}_${_selectedLayoutId}',
-      name:
-          '${selectedBg.name} · ${layoutOptions.firstWhere((e) => e.id == _selectedLayoutId).name}',
+      id: '${selectedBg.id}_$finalLayoutId',
+      name: '${selectedBg.name} · $layoutName',
       previewImagePath: selectedBg.filePath ?? selectedBg.assetPath,
-      backgroundColorValue: selectedBg.color?.value,
-      elements: _buildLayout(l10n, _selectedLayoutId, useLightText),
+      backgroundColorValue: selectedBg.color?.toARGB32(),
+      elements: elements,
     );
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_bgKey, _selectedBackgroundId);
     await prefs.setString(_layoutKey, _selectedLayoutId);
+    if (_selectedCustomLayoutId != null) {
+      await prefs.setString(_selectedCustomLayoutKey, _selectedCustomLayoutId!);
+    }
     if (_customBackgroundPath != null && _customBackgroundPath!.isNotEmpty) {
       await prefs.setString(_customBgKey, _customBackgroundPath!);
     }
@@ -879,6 +1017,237 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
     );
   }
 
+  Widget _buildCustomCreateCard(AppLocalizations l10n) {
+    return GestureDetector(
+      onTap: _createCustomLayout,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 92,
+              height: 58,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: const Color(0xFFEAF2FF),
+                border: Border.all(color: const Color(0xFFBFDBFE)),
+              ),
+              child: const Center(
+                child: Icon(Icons.add, color: Color(0xFF1677FF), size: 24),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.create,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.layoutCustomDesc,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF6B7280),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniCustomLayoutPreview(BusinessCardTemplate template, bool selected) {
+    final borderColor = selected ? const Color(0xFF1677FF) : const Color(0xFFE5E7EB);
+    final bgColor = template.backgroundColor ?? const Color(0xFFF9FAFB);
+
+    final visibleElements = template.elements.take(14).toList();
+
+    return Container(
+      width: 92,
+      height: 58,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: bgColor,
+        border: Border.all(color: borderColor),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(9),
+        child: Stack(
+          children: visibleElements.map((e) {
+            final dx = (e.x / 320.0 * 92.0).clamp(2.0, 84.0);
+            final dy = (e.y / 180.0 * 58.0).clamp(2.0, 52.0);
+
+            if (e is TextElement) {
+              return Positioned(
+                left: dx,
+                top: dy,
+                child: Container(
+                  width: 18,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6B7280).withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              );
+            }
+
+            if (e is IconElement) {
+              return Positioned(
+                left: dx,
+                top: dy,
+                child: Container(
+                  width: 4,
+                  height: 4,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF9CA3AF),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              );
+            }
+
+            if (e is ImageElement) {
+              return Positioned(
+                left: dx,
+                top: dy,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD1D5DB),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              );
+            }
+
+            return const SizedBox.shrink();
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSavedCustomLayoutCard(
+    AppLocalizations l10n,
+    BusinessCardTemplate template,
+  ) {
+    final bool selected =
+        _selectedLayoutId == 'layout_custom' && _selectedCustomLayoutId == template.id;
+
+    return GestureDetector(
+      onTap: () async {
+        setState(() {
+          _selectedLayoutId = 'layout_custom';
+          _selectedCustomLayoutId = template.id;
+        });
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_layoutKey, 'layout_custom');
+        await prefs.setString(_selectedCustomLayoutKey, template.id);
+      },
+      child: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: selected ? const Color(0xFFF4F8FF) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: selected ? const Color(0xFF1677FF) : const Color(0xFFE5E7EB),
+                width: selected ? 2 : 1,
+              ),
+              boxShadow: selected
+                  ? const [
+                      BoxShadow(
+                        color: Color(0x141677FF),
+                        blurRadius: 14,
+                        offset: Offset(0, 4),
+                      ),
+                    ]
+                  : const [],
+            ),
+            child: Row(
+              children: [
+                _buildMiniCustomLayoutPreview(template, selected),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        template.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.layoutCustom,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6B7280),
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (selected)
+                  const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF1677FF),
+                    size: 18,
+                  ),
+              ],
+            ),
+          ),
+          Positioned(
+            right: 6,
+            top: 6,
+            child: Material(
+              color: Colors.white,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () => _deleteCustomLayout(template.id),
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -1021,6 +1390,24 @@ class _TemplateSelectionPageState extends State<TemplateSelectionPage> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: _buildLayoutItem(e),
+            );
+          }),
+          const SizedBox(height: 8),
+          Text(
+            l10n.layoutCustom,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 10),
+          _buildCustomCreateCard(l10n),
+          if (_savedCustomLayouts.isNotEmpty) const SizedBox(height: 12),
+          ..._savedCustomLayouts.map((e) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildSavedCustomLayoutCard(l10n, e),
             );
           }),
           const SizedBox(height: 24),

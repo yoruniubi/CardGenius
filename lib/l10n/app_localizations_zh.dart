@@ -358,6 +358,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get layoutBottomBarDesc => '上方展示身份信息，下方横向集中展示联系方式';
 
   @override
+  String get layoutCustom => '自定义布局';
+
+  @override
+  String get layoutCustomDesc => '自由拖动元素位置，打造个性化名片布局';
+
+  @override
   String get editDigitalCard => '编辑电子名片';
 
   @override
@@ -508,4 +514,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get ocrResultPlaceholder => 'OCR 识别结果将在此显示。';
+
+  @override
+  String get create => '创建';
 }

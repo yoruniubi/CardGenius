@@ -776,6 +776,18 @@ abstract class AppLocalizations {
   /// **'Identity info at top, contacts displayed horizontally at bottom'**
   String get layoutBottomBarDesc;
 
+  /// No description provided for @layoutCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Layout'**
+  String get layoutCustom;
+
+  /// No description provided for @layoutCustomDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag elements freely to create your personalized card layout'**
+  String get layoutCustomDesc;
+
   /// No description provided for @editDigitalCard.
   ///
   /// In en, this message translates to:
@@ -1075,6 +1087,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OCR result will appear here.'**
   String get ocrResultPlaceholder;
+
+  /// No description provided for @create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
 }
 
 class _AppLocalizationsDelegate

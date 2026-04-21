@@ -147,6 +147,8 @@
   "layoutCenterDesc": "Centered layout, ideal for clean personal business cards",
   "layoutBottomBar": "Bottom Bar Info",
   "layoutBottomBarDesc": "Identity info at top, contacts displayed horizontally at bottom",
+  "layoutCustom": "Custom Layout",
+  "layoutCustomDesc": "Drag elements freely to create your personalized card layout",
   "editDigitalCard": "Edit Digital Card",
   "realtimePreview": "Real-time Preview",
   "avatar": "Avatar",
@@ -196,5 +198,6 @@
   "ocrToolbox": "OCR Toolbox",
   "uploadImage": "Upload Image",
   "result": "Result",
-  "ocrResultPlaceholder": "OCR result will appear here."
+  "ocrResultPlaceholder": "OCR result will appear here.",
+  "create": "Create"
 }

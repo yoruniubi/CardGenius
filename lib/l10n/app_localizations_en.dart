@@ -369,6 +369,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Identity info at top, contacts displayed horizontally at bottom';
 
   @override
+  String get layoutCustom => 'Custom Layout';
+
+  @override
+  String get layoutCustomDesc =>
+      'Drag elements freely to create your personalized card layout';
+
+  @override
   String get editDigitalCard => 'Edit Digital Card';
 
   @override
@@ -533,4 +540,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ocrResultPlaceholder => 'OCR result will appear here.';
+
+  @override
+  String get create => 'Create';
 }

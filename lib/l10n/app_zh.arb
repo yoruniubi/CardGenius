@@ -147,6 +147,8 @@
   "layoutCenterDesc": "以中轴线排版，适合简洁个人名片展示",
   "layoutBottomBar": "底栏信息型",
   "layoutBottomBarDesc": "上方展示身份信息，下方横向集中展示联系方式",
+  "layoutCustom": "自定义布局",
+  "layoutCustomDesc": "自由拖动元素位置，打造个性化名片布局",
   "editDigitalCard": "编辑电子名片",
   "realtimePreview": "实时预览",
   "avatar": "头像",
@@ -197,5 +199,6 @@
   "ocrToolbox": "OCR 工具箱",
   "uploadImage": "上传图片",
   "result": "结果",
-  "ocrResultPlaceholder": "OCR 识别结果将在此显示。"
+  "ocrResultPlaceholder": "OCR 识别结果将在此显示。",
+  "create": "创建"
 }
